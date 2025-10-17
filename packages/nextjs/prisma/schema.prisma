@@ -1,0 +1,144 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  address       String    @unique
+  email         String?
+  phone         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastHeartbeat DateTime  @default(now())
+
+  guardians     Guardian[]
+  recoveries    Recovery[]
+  daCommitments DACommitment[]
+
+  @@map("users")
+}
+
+model Guardian {
+  id            String          @id @default(cuid())
+  userId        String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  address       String
+  name          String?
+  email         String?
+  phone         String?
+  status        GuardianStatus  @default(PENDING)
+  addedAt       DateTime        @default(now())
+  acceptedAt    DateTime?
+
+  recoveryApprovals RecoveryApproval[]
+
+  @@map("guardians")
+}
+
+enum GuardianStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  INACTIVE
+}
+
+model Recovery {
+  id            String          @id @default(cuid())
+  userId        String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status        RecoveryStatus  @default(INITIATED)
+  isEmergency   Boolean         @default(false)
+  initiatedAt   DateTime        @default(now())
+  completedAt   DateTime?
+  cancelledAt   DateTime?
+  reason        String?
+
+  approvals     RecoveryApproval[]
+
+  @@map("recoveries")
+}
+
+enum RecoveryStatus {
+  INITIATED
+  AWAITING_APPROVALS
+  APPROVED
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+
+model RecoveryApproval {
+  id          String   @id @default(cuid())
+  recoveryId  String
+  recovery    Recovery @relation(fields: [recoveryId], references: [id], onDelete: Cascade)
+  guardianId  String
+  guardian    Guardian @relation(fields: [guardianId], references: [id], onDelete: Cascade)
+  approvedAt  DateTime @default(now())
+  signature   String
+  message     String?
+
+  @@unique([recoveryId, guardianId])
+  @@map("recovery_approvals")
+}
+
+model DACommitment {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pieceId     Int      // 0, 1, or 2 for pieces A, B, C
+  blockNumber BigInt
+  txIndex     Int
+  dataHash    String
+  merkleRoot  String
+  timestamp   DateTime @default(now())
+
+  @@unique([userId, pieceId])
+  @@map("da_commitments")
+}
+
+model Notification {
+  id          String              @id @default(cuid())
+  userId      String
+  guardianId  String?
+  type        NotificationType
+  channel     NotificationChannel
+  recipient   String
+  subject     String?
+  body        String
+  status      NotificationStatus  @default(PENDING)
+  sentAt      DateTime?
+  failedAt    DateTime?
+  error       String?
+  createdAt   DateTime            @default(now())
+
+  @@map("notifications")
+}
+
+enum NotificationType {
+  GUARDIAN_INVITE
+  RECOVERY_REQUEST
+  RECOVERY_APPROVED
+  RECOVERY_COMPLETED
+  HEARTBEAT_WARNING
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  PUSH
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  CANCELLED
+}
