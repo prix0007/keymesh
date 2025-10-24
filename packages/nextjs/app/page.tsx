@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -9,12 +10,46 @@ import {
   UsersIcon,
   CloudArrowUpIcon,
   QuestionMarkCircleIcon,
-  ArrowRightIcon
+  ArrowRightIcon,
+  CheckCircleIcon
 } from "@heroicons/react/24/outline";
+import { useAccount } from "wagmi";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 export default function LandingPage() {
+  const { address, isConnected } = useAccount();
+  const [hasSetup, setHasSetup] = useState(false);
+  const [checkingSetup, setCheckingSetup] = useState(false);
+
+  // Check if user has completed setup when wallet connects
+  useEffect(() => {
+    const checkSetupStatus = async () => {
+      if (!isConnected || !address) {
+        setHasSetup(false);
+        return;
+      }
+
+      setCheckingSetup(true);
+      try {
+        const response = await fetch(`/api/user/setup-status?address=${address}`);
+        const data = await response.json();
+        setHasSetup(data.hasSetup);
+      } catch (error) {
+        console.error('Error checking setup status:', error);
+        setHasSetup(false);
+      } finally {
+        setCheckingSetup(false);
+      }
+    };
+
+    checkSetupStatus();
+  }, [isConnected, address]);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-cyan-100 relative">
+      {/* Background pattern for glass effect */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_25%,rgba(120,119,198,0.3),transparent_50%),radial-gradient(circle_at_75%_75%,rgba(56,178,172,0.3),transparent_50%)]"></div>
+      <div className="relative z-10">
       {/* Header */}
       <header className="container mx-auto px-4 py-6">
         <nav className="flex items-center justify-between">
@@ -26,9 +61,23 @@ export default function LandingPage() {
             <Link href="/docs" className="text-gray-600 hover:text-gray-900">
               Docs
             </Link>
-            <Link href="/setup">
-              <Button>Get Started</Button>
-            </Link>
+            {isConnected && hasSetup ? (
+              <Link href="/dashboard">
+                <Button variant="solid" className="flex items-center space-x-2">
+                  <CheckCircleIcon className="h-4 w-4" />
+                  <span>Go to Dashboard</span>
+                </Button>
+              </Link>
+            ) : (
+              <div className="flex items-center space-x-3">
+                <ConnectButton />
+                {!hasSetup && (
+                  <Link href="/setup">
+                    <Button variant="solid">Get Started</Button>
+                  </Link>
+                )}
+              </div>
+            )}
           </div>
         </nav>
       </header>
@@ -36,30 +85,69 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 text-center">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-            Never Lose Your
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-600">
-              {" "}Crypto{" "}
-            </span>
-            Again
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Secure social recovery powered by Avail DA. Your keys are protected by trusted friends,
-            biometrics, and cryptography - no single point of failure.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/setup">
-              <Button size="lg" className="w-full sm:w-auto">
-                Protect Your Wallet
-                <ArrowRightIcon className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="#how-it-works">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                Learn How It Works
-              </Button>
-            </Link>
-          </div>
+          {isConnected && hasSetup ? (
+            <>
+              <div className="mx-auto mb-6 p-4 bg-green-100 rounded-full w-20 h-20 flex items-center justify-center">
+                <CheckCircleIcon className="h-12 w-12 text-green-600" />
+              </div>
+              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                Welcome Back!
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600">
+                  {" "}Your Wallet is Protected{" "}
+                </span>
+              </h1>
+              <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+                Your wallet recovery is active and secure. Monitor your setup, test recovery methods,
+                and manage your guardians from your dashboard.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/dashboard">
+                  <Button variant="solid" size="lg" className="w-full sm:w-auto">
+                    <CheckCircleIcon className="mr-2 h-4 w-4" />
+                    Go to Dashboard
+                  </Button>
+                </Link>
+                <Link href="/recovery">
+                  <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                    Test Recovery
+                  </Button>
+                </Link>
+              </div>
+            </>
+          ) : (
+            <>
+              <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+                Never Lose Your
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-600">
+                  {" "}Crypto{" "}
+                </span>
+                Again
+              </h1>
+              <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+                Secure social recovery powered by Avail DA. Your keys are protected by trusted friends,
+                biometrics, and cryptography - no single point of failure.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                {isConnected ? (
+                  <Link href="/setup">
+                    <Button variant="solid" size="lg" className="w-full sm:w-auto">
+                      Protect Your Wallet
+                      <ArrowRightIcon className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                ) : (
+                  <div className="w-full sm:w-auto">
+                    <ConnectButton />
+                  </div>
+                )}
+                <Link href="#how-it-works">
+                  <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                    Learn How It Works
+                  </Button>
+                </Link>
+              </div>
+            </>
+          )}
         </div>
       </section>
 
@@ -75,45 +163,45 @@ export default function LandingPage() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          <Card className="text-center p-6">
+          <Card className="text-center p-6 bg-white/90 backdrop-blur-sm border border-blue-200 shadow-lg">
             <CardHeader>
               <div className="mx-auto mb-4 p-3 bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center">
                 <KeyIcon className="h-8 w-8 text-blue-600" />
               </div>
-              <CardTitle>Step 1: Create Password & Biometric</CardTitle>
+              <CardTitle className="text-gray-900">Step 1: Create Password & Biometric</CardTitle>
             </CardHeader>
             <CardContent>
-              <CardDescription>
+              <CardDescription className="text-gray-700">
                 Set up a strong password and register your biometric (face/fingerprint).
                 These encrypt two pieces of your key.
               </CardDescription>
             </CardContent>
           </Card>
 
-          <Card className="text-center p-6">
+          <Card className="text-center p-6 bg-white/90 backdrop-blur-sm border border-blue-200 shadow-lg">
             <CardHeader>
               <div className="mx-auto mb-4 p-3 bg-green-100 rounded-full w-16 h-16 flex items-center justify-center">
                 <UsersIcon className="h-8 w-8 text-green-600" />
               </div>
-              <CardTitle>Step 2: Choose 5 Trusted Friends</CardTitle>
+              <CardTitle className="text-gray-900">Step 2: Choose 5 Trusted Friends</CardTitle>
             </CardHeader>
             <CardContent>
-              <CardDescription>
+              <CardDescription className="text-gray-700">
                 Select 5 guardians you trust. They'll help protect the third piece.
                 You need 3 of them to approve recovery.
               </CardDescription>
             </CardContent>
           </Card>
 
-          <Card className="text-center p-6">
+          <Card className="text-center p-6 bg-white/90 backdrop-blur-sm border border-blue-200 shadow-lg">
             <CardHeader>
               <div className="mx-auto mb-4 p-3 bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center">
                 <ShieldCheckIcon className="h-8 w-8 text-purple-600" />
               </div>
-              <CardTitle>Step 3: Your Keys Are Protected</CardTitle>
+              <CardTitle className="text-gray-900">Step 3: Your Keys Are Protected</CardTitle>
             </CardHeader>
             <CardContent>
-              <CardDescription>
+              <CardDescription className="text-gray-700">
                 All pieces are stored on Avail DA permanently. No one can access
                 your wallet without your approval.
               </CardDescription>
@@ -251,7 +339,7 @@ export default function LandingPage() {
             Join thousands of users who trust Keymesh to keep their crypto safe.
           </p>
           <Link href="/setup">
-            <Button size="lg">
+            <Button variant="solid" size="lg">
               Get Started Now
               <ArrowRightIcon className="ml-2 h-4 w-4" />
             </Button>
@@ -278,6 +366,7 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+      </div>
     </div>
   );
 }

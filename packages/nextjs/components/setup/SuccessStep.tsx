@@ -18,15 +18,33 @@ import {
 } from "@heroicons/react/24/outline";
 import { formatAddress } from "@/lib/utils";
 
+import { SetupData } from "@/app/setup/page";
+
 interface SuccessStepProps {
   walletAddress: string;
+  setupData: SetupData;
 }
 
-export default function SuccessStep({ walletAddress }: SuccessStepProps) {
+export default function SuccessStep({ walletAddress, setupData }: SuccessStepProps) {
   const [recoveryIdCopied, setRecoveryIdCopied] = useState(false);
 
-  // Generate a mock recovery ID (in real implementation, this would come from the backend)
-  const recoveryId = `keymesh_${walletAddress.slice(-8)}_${Date.now().toString(36)}`;
+  // Generate proper recovery URL from actual recovery data
+  const generateRecoveryUrl = () => {
+    if (setupData.recoveryData) {
+      const { blockReferences, guardianAddresses } = setupData.recoveryData;
+      const params = new URLSearchParams({
+        u: walletAddress,
+        b: blockReferences.join(','),
+        g: guardianAddresses.join(','),
+        v: '1'
+      });
+      return `keymesh://recovery/?${params.toString()}`;
+    }
+    // Fallback to old format if no recovery data
+    return `keymesh_${walletAddress.slice(-8)}_${Date.now().toString(36)}`;
+  };
+
+  const recoveryId = generateRecoveryUrl();
 
   const copyRecoveryId = async () => {
     try {

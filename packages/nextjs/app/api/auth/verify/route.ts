@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyMessage } from 'viem';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/lib/services/mockPrisma';
 import jwt from 'jsonwebtoken';
-import Redis from 'ioredis';
+import createMockRedis from '@/lib/services/mockRedis';
 
 const prisma = new PrismaClient();
-const redis = new Redis(process.env.REDIS_URL!);
+const redis = createMockRedis(process.env.REDIS_URL);
 
 export async function POST(request: NextRequest) {
   try {

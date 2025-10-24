@@ -13,7 +13,7 @@ import {
   CheckCircleIcon
 } from "@heroicons/react/24/outline";
 import { useAccount } from "wagmi";
-import { RainbowKitConnectButton } from "@rainbow-me/rainbowkit";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 // Import step components
 import PasswordStep from "@/components/setup/PasswordStep";
@@ -34,6 +34,10 @@ export interface SetupData {
     phone?: string;
     address?: string;
   }>;
+  recoveryData?: {
+    blockReferences: number[];
+    guardianAddresses: string[];
+  };
 }
 
 const STEPS = [
@@ -76,7 +80,10 @@ export default function SetupWizard() {
   // If not connected, show connect step
   if (!isConnected || currentStep === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-cyan-100 relative">
+        {/* Background pattern for glass effect */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_25%,rgba(120,119,198,0.3),transparent_50%),radial-gradient(circle_at_75%_75%,rgba(56,178,172,0.3),transparent_50%)]"></div>
+        <div className="relative z-10">
         <div className="container mx-auto px-4 py-20">
           <div className="max-w-2xl mx-auto">
             {/* Progress Header */}
@@ -99,7 +106,7 @@ export default function SetupWizard() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-center">
-                <RainbowKitConnectButton />
+                <ConnectButton />
                 {isConnected && (
                   <div className="mt-4">
                     <Button onClick={() => setCurrentStep(1)} className="w-full">
@@ -112,12 +119,16 @@ export default function SetupWizard() {
             </Card>
           </div>
         </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-cyan-100 relative">
+      {/* Background pattern for glass effect */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_25%,rgba(120,119,198,0.3),transparent_50%),radial-gradient(circle_at_75%_75%,rgba(56,178,172,0.3),transparent_50%)]"></div>
+      <div className="relative z-10">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Progress Header */}
@@ -206,11 +217,13 @@ export default function SetupWizard() {
                 walletAddress={address!}
                 onNext={nextStep}
                 onError={() => setCurrentStep(4)} // Go back to review on error
+                updateSetupData={updateSetupData}
               />
             )}
             {currentStep === 6 && (
               <SuccessStep
                 walletAddress={address!}
+                setupData={setupData}
               />
             )}
           </div>
@@ -229,6 +242,7 @@ export default function SetupWizard() {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

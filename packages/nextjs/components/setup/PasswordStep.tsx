@@ -199,7 +199,7 @@ export default function PasswordStep({ data, updateData, onNext, onPrev }: Passw
         )}
 
         {/* Security Note */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="glass rounded-lg p-4">
           <h4 className="font-medium text-blue-900 mb-2">Security Note</h4>
           <p className="text-sm text-blue-800">
             Your password is used to encrypt one piece of your private key locally.

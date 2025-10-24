@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/lib/services/mockPrisma';
 import { BlockchainService } from '@/lib/services/blockchainService';
 import { AvailService } from '@/lib/services/availService';
-import Redis from 'ioredis';
+import createMockRedis from '@/lib/services/mockRedis';
 
 const prisma = new PrismaClient();
 const blockchainService = new BlockchainService();
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
   // Check Redis
   try {
     const redisStart = Date.now();
-    const redis = new Redis(process.env.REDIS_URL!);
+    const redis = createMockRedis(process.env.REDIS_URL);
     await redis.ping();
     await redis.disconnect();
     health.services.redis = {

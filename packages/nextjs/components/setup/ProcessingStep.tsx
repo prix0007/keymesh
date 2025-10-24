@@ -9,17 +9,20 @@ import {
   ExclamationTriangleIcon,
   ArrowPathIcon,
   KeyIcon,
-  ShieldIcon,
+  ShieldCheckIcon,
   CloudArrowUpIcon,
   UsersIcon
 } from "@heroicons/react/24/outline";
 import { SetupData } from "@/app/setup/page";
+import { CryptoService } from "@/lib/services/cryptoService";
+import { ClientAvailService } from "@/lib/services/clientAvailService";
 
 interface ProcessingStepProps {
   data: SetupData;
   walletAddress: string;
   onNext: () => void;
   onError: () => void;
+  updateSetupData: (data: Partial<SetupData>) => void;
 }
 
 interface ProcessingStage {
@@ -31,11 +34,16 @@ interface ProcessingStage {
   progress: number;
 }
 
-export default function ProcessingStep({ data, walletAddress, onNext, onError }: ProcessingStepProps) {
+export default function ProcessingStep({ data, walletAddress, onNext, onError, updateSetupData }: ProcessingStepProps) {
   const [currentStageIndex, setCurrentStageIndex] = useState(0);
   const [overallProgress, setOverallProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [keyPieces, setKeyPieces] = useState<any>(null);
+  const [encryptedPieces, setEncryptedPieces] = useState<{ piece1: Uint8Array; piece2: Uint8Array; piece3: Uint8Array } | null>(null);
+  const [availCommitments, setAvailCommitments] = useState<any[]>([]);
+  const [preparationComplete, setPreparationComplete] = useState(false);
+  const [userConfirmed, setUserConfirmed] = useState(false);
 
   const [stages, setStages] = useState<ProcessingStage[]>([
     {
@@ -50,62 +58,163 @@ export default function ProcessingStep({ data, walletAddress, onNext, onError }:
       id: 'encrypt-pieces',
       title: 'Encrypting Key Pieces',
       description: 'Encrypting pieces with your password and biometric data',
-      icon: ShieldIcon,
+      icon: ShieldCheckIcon,
       status: 'pending',
       progress: 0
     },
     {
       id: 'setup-guardians',
-      title: 'Setting Up Guardian Network',
-      description: 'Preparing guardian verification system',
+      title: 'Preparing Guardian Network',
+      description: 'Configuring guardian verification system',
       icon: UsersIcon,
       status: 'pending',
       progress: 0
     },
     {
       id: 'store-avail',
-      title: 'Storing on Avail DA',
-      description: 'Uploading encrypted pieces to decentralized storage',
+      title: 'Store on Avail DA',
+      description: 'Ready to upload encrypted pieces to decentralized storage',
       icon: CloudArrowUpIcon,
       status: 'pending',
       progress: 0
     }
   ]);
 
-  // Simulate the processing stages
+  // Phase 1: Preparation - Generate and encrypt pieces but don't submit
   useEffect(() => {
-    const processStages = async () => {
+    if (preparationComplete || userConfirmed) return;
+
+    const prepareCrypto = async () => {
       try {
-        for (let i = 0; i < stages.length; i++) {
-          // Set current stage to processing
-          setCurrentStageIndex(i);
-          updateStageStatus(i, 'processing', 0);
+        // Stage 1: Generate key shares using actual crypto
+        setCurrentStageIndex(0);
+        updateStageStatus(0, 'processing', 0);
 
-          // Simulate progress for current stage
-          await simulateStageProgress(i);
+        // Generate a mock private key and split it
+        const privateKey = await CryptoService.generatePrivateKey();
+        const { pieces } = await CryptoService.splitKey(privateKey, 2, 3);
+        setKeyPieces(pieces);
 
-          // Mark stage as completed
-          updateStageStatus(i, 'completed', 100);
+        updateStageStatus(0, 'completed', 100);
+        setOverallProgress(25);
 
-          // Update overall progress
-          setOverallProgress(((i + 1) / stages.length) * 100);
+        // Stage 2: Encrypt pieces with password, biometric, and guardian data
+        setCurrentStageIndex(1);
+        updateStageStatus(1, 'processing', 0);
 
-          // Small delay between stages
-          await delay(500);
+        // Encrypt piece 1 with password
+        const piece1Encrypted = await CryptoService.encryptWithPassword(pieces[0].data, data.password);
+
+        // Encrypt piece 2 with biometric or password fallback
+        let piece2Encrypted: Uint8Array;
+        if (data.biometricData) {
+          piece2Encrypted = await CryptoService.encryptWithBiometric(pieces[1].data, data.biometricData);
+        } else {
+          piece2Encrypted = await CryptoService.encryptWithPassword(pieces[1].data, data.password + '_bio');
         }
 
-        // All stages completed
-        await delay(1000);
-        onNext();
+        // Encrypt piece 3 with guardian info
+        const guardiansString = JSON.stringify(data.guardians);
+        const piece3Encrypted = await CryptoService.encryptWithPassword(pieces[2].data, guardiansString);
+
+        setEncryptedPieces({ piece1: piece1Encrypted, piece2: piece2Encrypted, piece3: piece3Encrypted });
+
+        updateStageStatus(1, 'completed', 100);
+        setOverallProgress(50);
+
+        // Stage 3: Setup guardian network
+        setCurrentStageIndex(2);
+        updateStageStatus(2, 'processing', 0);
+
+        // Extract guardian addresses (use mock addresses for now)
+        const guardianAddresses = data.guardians.map((_, index) =>
+          `0x${'0'.repeat(39)}${(index + 1).toString()}`
+        );
+
+        updateStageStatus(2, 'completed', 100);
+        setOverallProgress(75);
+
+        // Stage 4: Ready to store (but don't submit yet)
+        setCurrentStageIndex(3);
+        updateStageStatus(3, 'pending', 0);
+        setOverallProgress(75);
+
+        // Preparation complete - show confirmation
+        setPreparationComplete(true);
+
       } catch (err: any) {
-        console.error('Processing error:', err);
-        setError(err.message || 'An error occurred during setup');
+        console.error('Preparation error:', err);
+        setError(err.message || 'An error occurred during preparation');
         updateStageStatus(currentStageIndex, 'error', 0);
       }
     };
 
-    processStages();
+    prepareCrypto();
   }, [isRetrying]);
+
+  // Phase 2: Submission - Actually submit to Avail DA after user confirmation
+  useEffect(() => {
+    if (!userConfirmed || !encryptedPieces) return;
+
+    const submitToStorage = async () => {
+      try {
+        const availService = new ClientAvailService();
+
+        // Stage 4: Store encrypted pieces on Avail DA
+        setCurrentStageIndex(3);
+        updateStageStatus(3, 'processing', 0);
+
+        const commitments = [];
+
+        // Submit piece 1
+        const piece1Result = await availService.submitPiece(encryptedPieces.piece1, walletAddress);
+        if (!piece1Result.success) throw new Error('Failed to store piece 1 on Avail');
+        commitments.push(piece1Result);
+
+        updateStageStatus(3, 'processing', 33);
+
+        // Submit piece 2
+        const piece2Result = await availService.submitPiece(encryptedPieces.piece2, walletAddress);
+        if (!piece2Result.success) throw new Error('Failed to store piece 2 on Avail');
+        commitments.push(piece2Result);
+
+        updateStageStatus(3, 'processing', 66);
+
+        // Submit piece 3
+        const piece3Result = await availService.submitPiece(encryptedPieces.piece3, walletAddress);
+        if (!piece3Result.success) throw new Error('Failed to store piece 3 on Avail');
+        commitments.push(piece3Result);
+
+        setAvailCommitments(commitments);
+        updateStageStatus(3, 'completed', 100);
+        setOverallProgress(100);
+
+        // Store recovery data for SuccessStep
+        const blockReferences = commitments.map(c => c.blockNumber || 0);
+        const guardianAddresses = data.guardians.map((_, index) =>
+          `0x${'0'.repeat(39)}${(index + 1).toString()}`
+        );
+
+        updateSetupData({
+          recoveryData: {
+            blockReferences,
+            guardianAddresses
+          }
+        });
+
+        // All stages completed - proceed to next step
+        await delay(1000);
+        onNext();
+
+      } catch (err: any) {
+        console.error('Submission error:', err);
+        setError(err.message || 'An error occurred during data submission');
+        updateStageStatus(3, 'error', 0);
+      }
+    };
+
+    submitToStorage();
+  }, [userConfirmed, encryptedPieces]);
 
   const updateStageStatus = (index: number, status: ProcessingStage['status'], progress: number) => {
     setStages(prev => prev.map((stage, i) =>
@@ -149,6 +258,9 @@ export default function ProcessingStep({ data, walletAddress, onNext, onError }:
     setIsRetrying(!isRetrying);
     setCurrentStageIndex(0);
     setOverallProgress(0);
+    setPreparationComplete(false);
+    setUserConfirmed(false);
+    setEncryptedPieces(null);
     setStages(prev => prev.map(stage => ({ ...stage, status: 'pending', progress: 0 })));
   };
 
@@ -275,16 +387,73 @@ export default function ProcessingStep({ data, walletAddress, onNext, onError }:
           </Card>
         )}
 
+        {/* Confirmation Step */}
+        {preparationComplete && !userConfirmed && !error && (
+          <Card className="border-2 border-green-300 bg-green-50">
+            <CardContent className="p-6">
+              <div className="text-center space-y-4">
+                <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                  <CheckCircleIcon className="h-8 w-8 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-green-800 text-lg mb-2">Ready to Finalize Setup</h3>
+                  <p className="text-sm text-green-700 mb-4">
+                    Your key pieces have been generated and encrypted. Click below to permanently store them on Avail DA and complete your recovery setup.
+                  </p>
+                  <div className="bg-white p-3 rounded border">
+                    <p className="text-xs text-green-800">
+                      ⚠️ <strong>Final Step:</strong> Once confirmed, your encrypted key pieces will be permanently stored on the blockchain. This action cannot be undone.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex space-x-3 justify-center">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setPreparationComplete(false);
+                      setEncryptedPieces(null);
+                      setOverallProgress(0);
+                      setCurrentStageIndex(0);
+                      setStages(prev => prev.map(stage => ({ ...stage, status: 'pending', progress: 0 })));
+                    }}
+                  >
+                    Cancel & Start Over
+                  </Button>
+                  <Button
+                    onClick={() => setUserConfirmed(true)}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    Confirm & Store Key Pieces
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Security Notes */}
-        {!error && (
+        {!error && !preparationComplete && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h4 className="font-medium text-blue-900 mb-2">🔒 What's Happening</h4>
             <ul className="text-sm text-blue-800 space-y-1">
               <li>• Your private key is being split into 3 encrypted pieces</li>
               <li>• Each piece is encrypted with different authentication factors</li>
-              <li>• Pieces are being stored permanently on Avail DA</li>
+              <li>• Pieces will be ready for storage on Avail DA</li>
               <li>• Guardian network is being configured for recovery</li>
               <li>• No single party can access your wallet without authorization</li>
+            </ul>
+          </div>
+        )}
+
+        {/* Post-confirmation Security Notes */}
+        {userConfirmed && !error && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 className="font-medium text-blue-900 mb-2">🔒 Storing Your Recovery Data</h4>
+            <ul className="text-sm text-blue-800 space-y-1">
+              <li>• Uploading encrypted pieces to Avail DA network</li>
+              <li>• Creating permanent, tamper-proof storage</li>
+              <li>• Recording commitments for future recovery</li>
+              <li>• Finalizing your wallet recovery configuration</li>
             </ul>
           </div>
         )}

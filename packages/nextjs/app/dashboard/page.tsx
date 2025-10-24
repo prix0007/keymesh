@@ -19,7 +19,10 @@ import {
   DocumentTextIcon,
   InformationCircleIcon,
   PlusIcon,
-  BellIcon
+  BellIcon,
+  CloudArrowUpIcon,
+  DocumentDuplicateIcon,
+  ArrowDownTrayIcon
 } from "@heroicons/react/24/outline";
 import { useAccount } from "wagmi";
 import { formatAddress } from "@/lib/utils";
@@ -52,6 +55,23 @@ interface Notification {
   isRead: boolean;
 }
 
+interface DASubmission {
+  blockNumber: number;
+  txIndex: number;
+  dataHash: string;
+  merkleRoot: string;
+  dataSize: number;
+  timestamp: Date;
+  metadata: any;
+}
+
+interface DAData {
+  submissions: DASubmission[];
+  totalSize: number;
+  totalCost: number;
+  currency: string;
+}
+
 export default function Dashboard() {
   const { address, isConnected } = useAccount();
   const [recoverySetup, setRecoverySetup] = useState<RecoverySetup | null>(null);
@@ -59,8 +79,10 @@ export default function Dashboard() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [heartbeatStatus, setHeartbeatStatus] = useState<'active' | 'warning' | 'critical'>('active');
   const [lastHeartbeat, setLastHeartbeat] = useState<Date>(new Date());
+  const [daData, setDaData] = useState<DAData | null>(null);
+  const [loadingDA, setLoadingDA] = useState(false);
 
-  // Mock data - in real app, this would come from API
+  // Load user data
   useEffect(() => {
     if (isConnected && address) {
       // Simulate loading user data
@@ -100,8 +122,72 @@ export default function Dashboard() {
       } else if (daysSinceLastActivity > 14) {
         setHeartbeatStatus('warning');
       }
+
+      // Load DA data
+      loadDAData();
     }
   }, [isConnected, address]);
+
+  const loadDAData = async () => {
+    if (!address) return;
+
+    setLoadingDA(true);
+    try {
+      const response = await fetch(`/api/avail/user-data?address=${address}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        setDaData(data);
+      } else {
+        console.error('Error loading DA data:', data.error);
+      }
+    } catch (error) {
+      console.error('Error loading DA data:', error);
+    } finally {
+      setLoadingDA(false);
+    }
+  };
+
+  const downloadDAData = async (submission: DASubmission) => {
+    try {
+      const response = await fetch('/api/avail/retrieve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          blockNumber: submission.blockNumber,
+          txIndex: submission.txIndex,
+          expectedHash: submission.dataHash
+        })
+      });
+
+      const result = await response.json();
+      if (result.success && result.data) {
+        // Convert base64 to blob and download
+        const byteCharacters = atob(result.data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray]);
+
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `recovery-data-${submission.blockNumber}-${submission.txIndex}.bin`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        alert('Failed to retrieve data: ' + (result.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error downloading DA data:', error);
+      alert('Error downloading data');
+    }
+  };
 
   if (!isConnected) {
     return (
@@ -327,6 +413,132 @@ export default function Dashboard() {
                     </Button>
                   </Link>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* DA Data Storage */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center space-x-2">
+                      <CloudArrowUpIcon className="h-5 w-5 text-indigo-600" />
+                      <span>Avail DA Storage</span>
+                    </CardTitle>
+                    <CardDescription>Your recovery data stored on decentralized availability</CardDescription>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={loadDAData} disabled={loadingDA}>
+                    {loadingDA ? 'Loading...' : 'Refresh'}
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {loadingDA ? (
+                  <div className="text-center py-8">
+                    <CloudArrowUpIcon className="h-8 w-8 text-gray-400 mx-auto mb-2 animate-pulse" />
+                    <p className="text-sm text-gray-500">Loading DA data...</p>
+                  </div>
+                ) : daData && daData.submissions.length > 0 ? (
+                  <div className="space-y-4">
+                    {/* Summary Stats */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-indigo-600">{daData.submissions.length}</div>
+                        <div className="text-xs text-gray-600">Data Pieces</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">
+                          {(daData.totalSize / 1024).toFixed(1)}KB
+                        </div>
+                        <div className="text-xs text-gray-600">Total Size</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-purple-600">
+                          ${daData.totalCost.toFixed(4)}
+                        </div>
+                        <div className="text-xs text-gray-600">Storage Cost</div>
+                      </div>
+                    </div>
+
+                    {/* Data Submissions */}
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-sm text-gray-900">Stored Data Pieces</h4>
+                      {daData.submissions.map((submission, index) => (
+                        <div
+                          key={`${submission.blockNumber}-${submission.txIndex}`}
+                          className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="p-2 bg-indigo-100 rounded-full">
+                              <DocumentDuplicateIcon className="h-4 w-4 text-indigo-600" />
+                            </div>
+                            <div>
+                              <div className="font-medium text-sm">
+                                Piece #{index + 1}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Block {submission.blockNumber}, TX {submission.txIndex}
+                              </div>
+                              <div className="text-xs text-gray-400">
+                                {new Date(submission.timestamp).toLocaleDateString()} • {(submission.dataSize / 1024).toFixed(1)}KB
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigator.clipboard.writeText(submission.dataHash)}
+                              title="Copy hash"
+                            >
+                              <DocumentDuplicateIcon className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => downloadDAData(submission)}
+                              title="Download data"
+                            >
+                              <ArrowDownTrayIcon className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Technical Details */}
+                    <details className="mt-4">
+                      <summary className="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900">
+                        Technical Details
+                      </summary>
+                      <div className="mt-2 p-3 bg-gray-50 rounded text-xs space-y-2">
+                        <div>
+                          <strong>Storage Method:</strong> Shamir Secret Sharing (3 pieces, 2 needed for recovery)
+                        </div>
+                        <div>
+                          <strong>Encryption:</strong> AES-256-GCM with password and biometric keys
+                        </div>
+                        <div>
+                          <strong>Availability:</strong> Permanently stored on Avail DA network
+                        </div>
+                        <div>
+                          <strong>Verification:</strong> All pieces include cryptographic hash verification
+                        </div>
+                      </div>
+                    </details>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <CloudArrowUpIcon className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500 mb-4">No recovery data found</p>
+                    <Link href="/setup">
+                      <Button size="sm">
+                        Set Up Recovery
+                        <ArrowRightIcon className="ml-1 h-4 w-4" />
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
