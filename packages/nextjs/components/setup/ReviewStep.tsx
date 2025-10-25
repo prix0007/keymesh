@@ -1,23 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import { SetupData } from "@/app/setup/page";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { formatAddress } from "@/lib/utils";
 import {
   CheckCircleIcon,
+  ChevronRightIcon,
+  ExclamationTriangleIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  InformationCircleIcon,
   KeyIcon,
   ShieldCheckIcon,
   UsersIcon,
   WalletIcon,
-  EyeIcon,
-  EyeSlashIcon,
-  InformationCircleIcon,
-  ExclamationTriangleIcon,
-  ChevronRightIcon
 } from "@heroicons/react/24/outline";
-import { SetupData } from "@/app/setup/page";
-import { formatAddress } from "@/lib/utils";
 
 interface ReviewStepProps {
   data: SetupData;
@@ -55,8 +55,8 @@ export default function ReviewStep({ data, walletAddress, onNext, onPrev }: Revi
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">Review & Confirm Setup</CardTitle>
         <CardDescription>
-          Please review your setup details before creating your recovery configuration.
-          This information will be used to protect your wallet.
+          Please review your setup details before creating your recovery configuration. This information will be used to
+          protect your wallet.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -72,9 +72,7 @@ export default function ReviewStep({ data, walletAddress, onNext, onPrev }: Revi
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm font-medium">Connected Wallet:</span>
-                <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
-                  {formatAddress(walletAddress)}
-                </span>
+                <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">{formatAddress(walletAddress)}</span>
               </div>
             </div>
           </CardContent>
@@ -94,17 +92,16 @@ export default function ReviewStep({ data, walletAddress, onNext, onPrev }: Revi
               ✓ Strong master password configured
               <br />
               ✓ Encrypts the first piece of your private key
-              <br />
-              ✓ Enables instant recovery when combined with biometrics
+              <br />✓ Enables instant recovery when combined with biometrics
             </p>
           </CardContent>
         </Card>
 
         {/* Biometric Setup */}
-        <Card className={`border-2 ${data.biometricData ? 'border-purple-100' : 'border-gray-100'}`}>
+        <Card className={`border-2 ${data.biometricData ? "border-purple-100" : "border-gray-100"}`}>
           <CardHeader className="pb-3">
             <div className="flex items-center space-x-2">
-              <ShieldCheckIcon className={`h-5 w-5 ${data.biometricData ? 'text-purple-600' : 'text-gray-400'}`} />
+              <ShieldCheckIcon className={`h-5 w-5 ${data.biometricData ? "text-purple-600" : "text-gray-400"}`} />
               <CardTitle className="text-lg">Biometric Authentication</CardTitle>
               {data.biometricData && <CheckCircleIcon className="h-5 w-5 text-green-600" />}
             </div>
@@ -112,19 +109,17 @@ export default function ReviewStep({ data, walletAddress, onNext, onPrev }: Revi
           <CardContent>
             {data.biometricData ? (
               <p className="text-sm text-gray-600">
-                ✓ {data.biometricType === 'face' ? 'Face Recognition' : 'Fingerprint'} authentication configured
+                ✓ {data.biometricType === "face" ? "Face Recognition" : "Fingerprint"} authentication configured
                 <br />
                 ✓ Encrypts the second piece of your private key
-                <br />
-                ✓ Enables instant recovery when combined with password
+                <br />✓ Enables instant recovery when combined with password
               </p>
             ) : (
               <p className="text-sm text-gray-500">
                 ⚪ Biometric authentication skipped
                 <br />
                 ⚪ You can still recover using password + social recovery
-                <br />
-                ⚪ Recovery will take 7 days without biometrics
+                <br />⚪ Recovery will take 7 days without biometrics
               </p>
             )}
           </CardContent>
@@ -145,8 +140,7 @@ export default function ReviewStep({ data, walletAddress, onNext, onPrev }: Revi
                 ✓ {data.guardians.length} trusted guardians configured
                 <br />
                 ✓ 3 guardian approvals required for social recovery
-                <br />
-                ✓ 7-day delay for security protection
+                <br />✓ 7-day delay for security protection
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -176,7 +170,7 @@ export default function ReviewStep({ data, walletAddress, onNext, onPrev }: Revi
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-white p-3 rounded">
                     <div className="text-green-600 font-medium mb-1">Instant Recovery</div>
-                    <div>Password + {data.biometricData ? 'Biometric' : 'N/A'}</div>
+                    <div>Password + {data.biometricData ? "Biometric" : "N/A"}</div>
                     {!data.biometricData && <div className="text-gray-500 text-xs">Not available</div>}
                   </div>
                   <div className="bg-white p-3 rounded">
@@ -185,7 +179,7 @@ export default function ReviewStep({ data, walletAddress, onNext, onPrev }: Revi
                   </div>
                   <div className="bg-white p-3 rounded">
                     <div className="text-yellow-600 font-medium mb-1">7-Day Recovery</div>
-                    <div>{data.biometricData ? 'Biometric' : 'Social'} + 3 Guardians</div>
+                    <div>{data.biometricData ? "Biometric" : "Social"} + 3 Guardians</div>
                   </div>
                 </div>
               </div>
@@ -197,9 +191,7 @@ export default function ReviewStep({ data, walletAddress, onNext, onPrev }: Revi
         <Card className="border-2 border-yellow-100">
           <CardHeader>
             <CardTitle className="text-lg">Confirm Your Password</CardTitle>
-            <CardDescription>
-              Enter your master password one more time to confirm your setup.
-            </CardDescription>
+            <CardDescription>Enter your master password one more time to confirm your setup.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -211,14 +203,12 @@ export default function ReviewStep({ data, walletAddress, onNext, onPrev }: Revi
                   id="confirmPassword"
                   type={showPassword ? "text" : "password"}
                   value={confirmationPassword}
-                  onChange={(e) => {
+                  onChange={e => {
                     setConfirmationPassword(e.target.value);
                     setError(null);
                   }}
                   placeholder="Re-enter your master password"
-                  className={`pr-10 ${
-                    confirmationPassword && !isPasswordCorrect ? 'border-red-500' : ''
-                  }`}
+                  className={`pr-10 ${confirmationPassword && !isPasswordCorrect ? "border-red-500" : ""}`}
                 />
                 <button
                   type="button"
@@ -242,7 +232,7 @@ export default function ReviewStep({ data, walletAddress, onNext, onPrev }: Revi
                   ) : (
                     <>
                       <ExclamationTriangleIcon className="h-4 w-4 mr-2 text-red-600" />
-                      <span className="text-red-600">Password doesn't match</span>
+                      <span className="text-red-600">Password doesn&apos;t match</span>
                     </>
                   )}
                 </div>
@@ -258,7 +248,7 @@ export default function ReviewStep({ data, walletAddress, onNext, onPrev }: Revi
               type="checkbox"
               id="terms"
               checked={agreedToTerms}
-              onChange={(e) => setAgreedToTerms(e.target.checked)}
+              onChange={e => setAgreedToTerms(e.target.checked)}
               className="mt-1"
             />
             <label htmlFor="terms" className="text-sm">
@@ -288,8 +278,8 @@ export default function ReviewStep({ data, walletAddress, onNext, onPrev }: Revi
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <h4 className="font-medium text-green-900 mb-2">💰 One-Time Cost</h4>
           <p className="text-sm text-green-800">
-            Approximately $0.03 to store your encrypted key pieces permanently on Avail DA.
-            No monthly fees or subscriptions required.
+            Approximately $0.03 to store your encrypted key pieces permanently on Avail DA. No monthly fees or
+            subscriptions required.
           </p>
         </div>
 
@@ -298,11 +288,7 @@ export default function ReviewStep({ data, walletAddress, onNext, onPrev }: Revi
           <Button variant="outline" onClick={onPrev}>
             Back
           </Button>
-          <Button
-            onClick={handleConfirm}
-            disabled={!canProceed}
-            className="min-w-32 bg-green-600 hover:bg-green-700"
-          >
+          <Button onClick={handleConfirm} disabled={!canProceed} className="min-w-32 bg-green-600 hover:bg-green-700">
             Create Recovery Setup
             <ChevronRightIcon className="ml-2 h-4 w-4" />
           </Button>

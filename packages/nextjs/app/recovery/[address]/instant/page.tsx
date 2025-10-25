@@ -3,26 +3,26 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import {
-  KeyIcon,
-  ShieldCheckIcon,
-  EyeIcon,
-  EyeSlashIcon,
+  ArrowRightIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
-  ArrowRightIcon,
+  EyeIcon,
+  EyeSlashIcon,
   FaceSmileIcon,
-  FingerPrintIcon
+  FingerPrintIcon,
+  KeyIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 
 interface RecoveryStep {
   id: string;
   title: string;
   description: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'failed';
+  status: "pending" | "in_progress" | "completed" | "failed";
   icon: React.ComponentType<any>;
 }
 
@@ -44,28 +44,26 @@ export default function InstantRecovery() {
       title: "Enter Password",
       description: "Decrypt key piece A with your master password",
       status: "in_progress",
-      icon: KeyIcon
+      icon: KeyIcon,
     },
     {
       id: "biometric",
       title: "Verify Biometric",
       description: "Decrypt key piece B with your biometric",
       status: "pending",
-      icon: biometricType === "face" ? FaceSmileIcon : FingerPrintIcon
+      icon: biometricType === "face" ? FaceSmileIcon : FingerPrintIcon,
     },
     {
       id: "reconstruct",
       title: "Reconstruct Key",
       description: "Combine pieces to restore your private key",
       status: "pending",
-      icon: ShieldCheckIcon
-    }
+      icon: ShieldCheckIcon,
+    },
   ]);
 
-  const updateStepStatus = (stepIndex: number, status: RecoveryStep['status']) => {
-    setSteps(prev => prev.map((step, index) =>
-      index === stepIndex ? { ...step, status } : step
-    ));
+  const updateStepStatus = (stepIndex: number, status: RecoveryStep["status"]) => {
+    setSteps(prev => prev.map((step, index) => (index === stepIndex ? { ...step, status } : step)));
   };
 
   const handlePasswordVerify = async () => {
@@ -118,13 +116,13 @@ export default function InstantRecovery() {
         challenge: new Uint8Array(32).map(() => Math.floor(Math.random() * 256)),
         allowCredentials: [],
         timeout: 60000,
-        userVerification: 'required',
+        userVerification: "required",
       };
 
       // Request biometric authentication
-      const credential = await navigator.credentials.get({
+      const credential = (await navigator.credentials.get({
         publicKey: authenticationOptions,
-      }) as PublicKeyCredential;
+      })) as PublicKeyCredential;
 
       if (credential) {
         // Simulate decryption process
@@ -164,6 +162,7 @@ export default function InstantRecovery() {
       // Navigate to success page
       router.push(`/recovery/${walletAddress}/success`);
     } catch (err: any) {
+      console.error("Reconstruction error:", err);
       setError("Failed to reconstruct private key");
       updateStepStatus(2, "failed");
       setIsProcessing(false);
@@ -179,7 +178,7 @@ export default function InstantRecovery() {
     }
   };
 
-  const progress = ((steps.filter(s => s.status === "completed").length) / steps.length) * 100;
+  const progress = (steps.filter(s => s.status === "completed").length / steps.length) * 100;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50">
@@ -201,15 +200,11 @@ export default function InstantRecovery() {
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Recovery Progress</CardTitle>
-              <CardDescription>
-                Decrypting and reconstructing your private key
-              </CardDescription>
+              <CardDescription>Decrypting and reconstructing your private key</CardDescription>
             </CardHeader>
             <CardContent>
               <Progress value={progress} className="mb-4" />
-              <p className="text-sm text-gray-500 text-center">
-                {Math.round(progress)}% complete
-              </p>
+              <p className="text-sm text-gray-500 text-center">{Math.round(progress)}% complete</p>
             </CardContent>
           </Card>
 
@@ -225,45 +220,61 @@ export default function InstantRecovery() {
                 <Card
                   key={step.id}
                   className={`border-2 ${
-                    isFailed ? "border-red-300 bg-red-50" :
-                    isCompleted ? "border-green-300 bg-green-50" :
-                    isActive ? "border-blue-300 bg-blue-50" :
-                    "border-gray-200"
+                    isFailed
+                      ? "border-red-300 bg-red-50"
+                      : isCompleted
+                        ? "border-green-300 bg-green-50"
+                        : isActive
+                          ? "border-blue-300 bg-blue-50"
+                          : "border-gray-200"
                   }`}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-center space-x-4">
-                      <div className={`p-2 rounded-full ${
-                        isFailed ? "bg-red-100" :
-                        isCompleted ? "bg-green-100" :
-                        isActive ? "bg-blue-100" :
-                        "bg-gray-100"
-                      }`}>
+                      <div
+                        className={`p-2 rounded-full ${
+                          isFailed
+                            ? "bg-red-100"
+                            : isCompleted
+                              ? "bg-green-100"
+                              : isActive
+                                ? "bg-blue-100"
+                                : "bg-gray-100"
+                        }`}
+                      >
                         {isCompleted ? (
                           <CheckCircleIcon className="h-6 w-6 text-green-600" />
                         ) : isFailed ? (
                           <ExclamationTriangleIcon className="h-6 w-6 text-red-600" />
                         ) : (
-                          <Icon className={`h-6 w-6 ${
-                            isActive ? "text-blue-600" : "text-gray-400"
-                          }`} />
+                          <Icon className={`h-6 w-6 ${isActive ? "text-blue-600" : "text-gray-400"}`} />
                         )}
                       </div>
                       <div className="flex-1">
-                        <h3 className={`font-medium ${
-                          isFailed ? "text-red-800" :
-                          isCompleted ? "text-green-800" :
-                          isActive ? "text-blue-800" :
-                          "text-gray-600"
-                        }`}>
+                        <h3
+                          className={`font-medium ${
+                            isFailed
+                              ? "text-red-800"
+                              : isCompleted
+                                ? "text-green-800"
+                                : isActive
+                                  ? "text-blue-800"
+                                  : "text-gray-600"
+                          }`}
+                        >
                           {step.title}
                         </h3>
-                        <p className={`text-sm ${
-                          isFailed ? "text-red-600" :
-                          isCompleted ? "text-green-600" :
-                          isActive ? "text-blue-600" :
-                          "text-gray-500"
-                        }`}>
+                        <p
+                          className={`text-sm ${
+                            isFailed
+                              ? "text-red-600"
+                              : isCompleted
+                                ? "text-green-600"
+                                : isActive
+                                  ? "text-blue-600"
+                                  : "text-gray-500"
+                          }`}
+                        >
                           {step.description}
                         </p>
                       </div>
@@ -282,9 +293,7 @@ export default function InstantRecovery() {
             <Card>
               <CardHeader>
                 <CardTitle>Enter Your Master Password</CardTitle>
-                <CardDescription>
-                  This will decrypt the first piece of your private key
-                </CardDescription>
+                <CardDescription>This will decrypt the first piece of your private key</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -296,10 +305,10 @@ export default function InstantRecovery() {
                       id="password"
                       type={showPassword ? "text" : "password"}
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={e => setPassword(e.target.value)}
                       placeholder="Enter your master password"
                       className="pr-10"
-                      onKeyPress={(e) => e.key === "Enter" && handlePasswordVerify()}
+                      onKeyPress={e => e.key === "Enter" && handlePasswordVerify()}
                     />
                     <button
                       type="button"
@@ -315,11 +324,7 @@ export default function InstantRecovery() {
                   </div>
                 </div>
 
-                <Button
-                  onClick={handlePasswordVerify}
-                  disabled={!password || isProcessing}
-                  className="w-full"
-                >
+                <Button onClick={handlePasswordVerify} disabled={!password || isProcessing} className="w-full">
                   {isProcessing ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -360,11 +365,7 @@ export default function InstantRecovery() {
                     Position your {biometricType === "face" ? "face in front of the camera" : "finger on the sensor"}
                   </p>
 
-                  <Button
-                    onClick={handleBiometricVerify}
-                    disabled={isProcessing}
-                    size="lg"
-                  >
+                  <Button onClick={handleBiometricVerify} disabled={isProcessing} size="lg">
                     {isProcessing ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -386,15 +387,11 @@ export default function InstantRecovery() {
             <Card>
               <CardHeader>
                 <CardTitle>Reconstructing Private Key</CardTitle>
-                <CardDescription>
-                  Combining your decrypted pieces to restore wallet access
-                </CardDescription>
+                <CardDescription>Combining your decrypted pieces to restore wallet access</CardDescription>
               </CardHeader>
               <CardContent className="text-center py-6">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">
-                  Please wait while we reconstruct your private key...
-                </p>
+                <p className="text-gray-600">Please wait while we reconstruct your private key...</p>
               </CardContent>
             </Card>
           )}
@@ -419,11 +416,7 @@ export default function InstantRecovery() {
 
           {/* Back Button */}
           <div className="text-center mt-6">
-            <Button
-              variant="outline"
-              onClick={() => router.back()}
-              disabled={isProcessing}
-            >
+            <Button variant="outline" onClick={() => router.back()} disabled={isProcessing}>
               Back to Method Selection
             </Button>
           </div>

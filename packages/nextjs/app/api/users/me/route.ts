@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { requireAuth } from '@/lib/auth';
+import { NextRequest, NextResponse } from "next/server";
+import { requireAuth } from "@/lib/auth";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -23,9 +23,9 @@ export async function GET(request: NextRequest) {
             phone: true,
             status: true,
             addedAt: true,
-            acceptedAt: true
+            acceptedAt: true,
           },
-          orderBy: { addedAt: 'asc' }
+          orderBy: { addedAt: "asc" },
         },
         daCommitments: {
           select: {
@@ -34,15 +34,15 @@ export async function GET(request: NextRequest) {
             txIndex: true,
             dataHash: true,
             merkleRoot: true,
-            timestamp: true
+            timestamp: true,
           },
-          orderBy: { pieceId: 'asc' }
+          orderBy: { pieceId: "asc" },
         },
         recoveries: {
           where: {
             status: {
-              in: ['INITIATED', 'AWAITING_APPROVALS', 'APPROVED']
-            }
+              in: ["INITIATED", "AWAITING_APPROVALS", "APPROVED"],
+            },
           },
           include: {
             approvals: {
@@ -51,23 +51,20 @@ export async function GET(request: NextRequest) {
                   select: {
                     id: true,
                     name: true,
-                    address: true
-                  }
-                }
-              }
-            }
+                    address: true,
+                  },
+                },
+              },
+            },
           },
           take: 1,
-          orderBy: { initiatedAt: 'desc' }
-        }
-      }
+          orderBy: { initiatedAt: "desc" },
+        },
+      },
     });
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     return NextResponse.json({
@@ -83,16 +80,12 @@ export async function GET(request: NextRequest) {
         daCommitments: user.daCommitments,
         activeRecovery: user.recoveries[0] || null,
         isSetup: user.daCommitments.length === 3,
-        guardiansSetup: user.guardians.filter(g => g.status === 'ACCEPTED').length >= 3
-      }
+        guardiansSetup: user.guardians.filter((g: any) => g.status === "ACCEPTED").length >= 3,
+      },
     });
-
   } catch (error) {
-    console.error('Error fetching user:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error("Error fetching user:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -107,18 +100,12 @@ export async function PUT(request: NextRequest) {
 
     // Validate email format if provided
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return NextResponse.json(
-        { error: 'Invalid email format' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
     }
 
     // Validate phone format if provided (basic validation)
-    if (phone && !/^[+]?[1-9]\d{1,14}$/.test(phone.replace(/\s|-/g, ''))) {
-      return NextResponse.json(
-        { error: 'Invalid phone format' },
-        { status: 400 }
-      );
+    if (phone && !/^[+]?[1-9]\d{1,14}$/.test(phone.replace(/\s|-/g, ""))) {
+      return NextResponse.json({ error: "Invalid phone format" }, { status: 400 });
     }
 
     const updatedUser = await prisma.user.update({
@@ -126,7 +113,7 @@ export async function PUT(request: NextRequest) {
       data: {
         email: email || null,
         phone: phone || null,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       select: {
         id: true,
@@ -135,19 +122,15 @@ export async function PUT(request: NextRequest) {
         phone: true,
         createdAt: true,
         updatedAt: true,
-        lastHeartbeat: true
-      }
+        lastHeartbeat: true,
+      },
     });
 
     return NextResponse.json({
-      user: updatedUser
+      user: updatedUser,
     });
-
   } catch (error) {
-    console.error('Error updating user:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error("Error updating user:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

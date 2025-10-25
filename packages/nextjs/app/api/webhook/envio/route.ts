@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { NotificationService } from '@/lib/services/notificationService';
+import { NextRequest, NextResponse } from "next/server";
+import { NotificationService } from "@/lib/services/notificationService";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 const notificationService = new NotificationService();
@@ -8,7 +8,7 @@ const notificationService = new NotificationService();
 export async function POST(request: NextRequest) {
   try {
     // Verify webhook signature (if Envio provides one)
-    const signature = request.headers.get('x-envio-signature');
+    const signature = request.headers.get("x-envio-signature");
     if (process.env.ENVIO_WEBHOOK_SECRET && signature) {
       // TODO: Implement webhook signature verification
       // This would verify that the webhook is actually from Envio
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     const events = await request.json();
 
     if (!Array.isArray(events)) {
-      return NextResponse.json({ error: 'Invalid payload format' }, { status: 400 });
+      return NextResponse.json({ error: "Invalid payload format" }, { status: 400 });
     }
 
     let processedEvents = 0;
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
         await processEvent(event);
         processedEvents++;
       } catch (error) {
-        console.error('Error processing event:', error);
+        console.error("Error processing event:", error);
         errors++;
       }
     }
@@ -37,15 +37,11 @@ export async function POST(request: NextRequest) {
       success: true,
       processed: processedEvents,
       errors: errors,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-
   } catch (error) {
-    console.error('Error in Envio webhook:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error("Error in Envio webhook:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -53,25 +49,25 @@ async function processEvent(event: any) {
   const { type, data } = event;
 
   switch (type) {
-    case 'RecoverySetup':
+    case "RecoverySetup":
       await handleRecoverySetup(data);
       break;
-    case 'RecoveryInitiated':
+    case "RecoveryInitiated":
       await handleRecoveryInitiated(data);
       break;
-    case 'GuardianApproval':
+    case "GuardianApproval":
       await handleGuardianApproval(data);
       break;
-    case 'RecoveryCompleted':
+    case "RecoveryCompleted":
       await handleRecoveryCompleted(data);
       break;
-    case 'RecoveryCancelled':
+    case "RecoveryCancelled":
       await handleRecoveryCancelled(data);
       break;
-    case 'HeartbeatUpdated':
+    case "HeartbeatUpdated":
       await handleHeartbeatUpdated(data);
       break;
-    case 'CommitmentRecorded':
+    case "CommitmentRecorded":
       await handleCommitmentRecorded(data);
       break;
     default:
@@ -80,11 +76,11 @@ async function processEvent(event: any) {
 }
 
 async function handleRecoverySetup(data: any) {
-  const { userAddress, guardians, blockNumber, transactionHash } = data;
+  const { userAddress, guardians, blockNumber } = data;
 
   // Update database with on-chain confirmation
   const user = await prisma.user.findUnique({
-    where: { address: userAddress.toLowerCase() }
+    where: { address: userAddress.toLowerCase() },
   });
 
   if (user) {
@@ -93,12 +89,12 @@ async function handleRecoverySetup(data: any) {
       where: {
         userId: user.id,
         address: {
-          in: guardians.map((g: string) => g.toLowerCase())
-        }
+          in: guardians.map((g: string) => g.toLowerCase()),
+        },
       },
       data: {
         // Could add onChainConfirmed field
-      }
+      },
     });
   }
 
@@ -106,22 +102,22 @@ async function handleRecoverySetup(data: any) {
 }
 
 async function handleRecoveryInitiated(data: any) {
-  const { userAddress, isEmergency, blockNumber, transactionHash } = data;
+  const { userAddress, isEmergency } = data;
 
   // Find or create recovery record
   const user = await prisma.user.findUnique({
     where: { address: userAddress.toLowerCase() },
     include: {
       guardians: {
-        where: { status: 'ACCEPTED' },
+        where: { status: "ACCEPTED" },
         select: {
           id: true,
           name: true,
           email: true,
-          phone: true
-        }
-      }
-    }
+          phone: true,
+        },
+      },
+    },
   });
 
   if (!user) {
@@ -134,9 +130,9 @@ async function handleRecoveryInitiated(data: any) {
     where: {
       userId: user.id,
       status: {
-        in: ['INITIATED', 'AWAITING_APPROVALS', 'APPROVED']
-      }
-    }
+        in: ["INITIATED", "AWAITING_APPROVALS", "APPROVED"],
+      },
+    },
   });
 
   if (!recovery) {
@@ -144,10 +140,10 @@ async function handleRecoveryInitiated(data: any) {
     recovery = await prisma.recovery.create({
       data: {
         userId: user.id,
-        status: 'INITIATED',
+        status: "INITIATED",
         isEmergency: isEmergency,
-        initiatedAt: new Date()
-      }
+        initiatedAt: new Date(),
+      },
     });
   }
 
@@ -157,16 +153,16 @@ async function handleRecoveryInitiated(data: any) {
       await notificationService.sendNotification({
         userId: user.id,
         guardianId: guardian.id,
-        type: 'RECOVERY_REQUEST',
+        type: "RECOVERY_REQUEST",
         recipient: guardian.email,
-        channel: 'EMAIL',
+        channel: "EMAIL",
         templateData: {
           userAddress: user.address,
           recoveryId: recovery.id,
           isEmergency: isEmergency,
           initiatedAt: recovery.initiatedAt,
-          guardianName: guardian.name
-        }
+          guardianName: guardian.name,
+        },
       });
     }
   }
@@ -179,27 +175,27 @@ async function handleGuardianApproval(data: any) {
 
   // Find the recovery and guardian
   const user = await prisma.user.findUnique({
-    where: { address: userAddress.toLowerCase() }
+    where: { address: userAddress.toLowerCase() },
   });
 
   const guardian = await prisma.guardian.findFirst({
     where: {
       address: guardianAddress.toLowerCase(),
-      userId: user?.id
-    }
+      userId: user?.id,
+    },
   });
 
   const recovery = await prisma.recovery.findFirst({
     where: {
       userId: user?.id,
       status: {
-        in: ['INITIATED', 'AWAITING_APPROVALS']
-      }
-    }
+        in: ["INITIATED", "AWAITING_APPROVALS"],
+      },
+    },
   });
 
   if (!user || !guardian || !recovery) {
-    console.error('Could not find user, guardian, or recovery for approval event');
+    console.error("Could not find user, guardian, or recovery for approval event");
     return;
   }
 
@@ -207,8 +203,8 @@ async function handleGuardianApproval(data: any) {
   const existingApproval = await prisma.recoveryApproval.findFirst({
     where: {
       recoveryId: recovery.id,
-      guardianId: guardian.id
-    }
+      guardianId: guardian.id,
+    },
   });
 
   if (!existingApproval) {
@@ -219,35 +215,35 @@ async function handleGuardianApproval(data: any) {
         guardianId: guardian.id,
         signature: signature,
         message: `On-chain approval from block ${blockNumber}`,
-        approvedAt: new Date()
-      }
+        approvedAt: new Date(),
+      },
     });
 
     // Check if we have enough approvals
     const totalApprovals = await prisma.recoveryApproval.count({
-      where: { recoveryId: recovery.id }
+      where: { recoveryId: recovery.id },
     });
 
     if (totalApprovals >= 3) {
       // Update recovery status
       await prisma.recovery.update({
         where: { id: recovery.id },
-        data: { status: 'APPROVED' }
+        data: { status: "APPROVED" },
       });
 
       // Notify user about approval
       if (user.email) {
         await notificationService.sendNotification({
           userId: user.id,
-          type: 'RECOVERY_APPROVED',
+          type: "RECOVERY_APPROVED",
           recipient: user.email,
-          channel: 'EMAIL',
+          channel: "EMAIL",
           templateData: {
             recoveryId: recovery.id,
             currentApprovals: totalApprovals,
             isEmergency: recovery.isEmergency,
-            canFinalize: false // Will be true after delay period
-          }
+            canFinalize: false, // Will be true after delay period
+          },
         });
       }
     }
@@ -257,23 +253,23 @@ async function handleGuardianApproval(data: any) {
 }
 
 async function handleRecoveryCompleted(data: any) {
-  const { userAddress, blockNumber, transactionHash } = data;
+  const { userAddress, blockNumber } = data;
 
   // Update recovery status
   const user = await prisma.user.findUnique({
-    where: { address: userAddress.toLowerCase() }
+    where: { address: userAddress.toLowerCase() },
   });
 
   if (user) {
     await prisma.recovery.updateMany({
       where: {
         userId: user.id,
-        status: 'APPROVED'
+        status: "APPROVED",
       },
       data: {
-        status: 'COMPLETED',
-        completedAt: new Date()
-      }
+        status: "COMPLETED",
+        completedAt: new Date(),
+      },
     });
   }
 
@@ -285,7 +281,7 @@ async function handleRecoveryCancelled(data: any) {
 
   // Update recovery status
   const user = await prisma.user.findUnique({
-    where: { address: userAddress.toLowerCase() }
+    where: { address: userAddress.toLowerCase() },
   });
 
   if (user) {
@@ -293,13 +289,13 @@ async function handleRecoveryCancelled(data: any) {
       where: {
         userId: user.id,
         status: {
-          in: ['INITIATED', 'AWAITING_APPROVALS', 'APPROVED']
-        }
+          in: ["INITIATED", "AWAITING_APPROVALS", "APPROVED"],
+        },
       },
       data: {
-        status: 'CANCELLED',
-        cancelledAt: new Date()
-      }
+        status: "CANCELLED",
+        cancelledAt: new Date(),
+      },
     });
   }
 
@@ -314,8 +310,8 @@ async function handleHeartbeatUpdated(data: any) {
     where: { address: userAddress.toLowerCase() },
     data: {
       lastHeartbeat: new Date(timestamp * 1000), // Convert from Unix timestamp
-      updatedAt: new Date()
-    }
+      updatedAt: new Date(),
+    },
   });
 
   console.log(`Heartbeat updated on-chain for ${userAddress} at block ${blockNumber}`);
@@ -326,7 +322,7 @@ async function handleCommitmentRecorded(data: any) {
 
   // Update or create DA commitment
   const user = await prisma.user.findUnique({
-    where: { address: userAddress.toLowerCase() }
+    where: { address: userAddress.toLowerCase() },
   });
 
   if (user) {
@@ -334,14 +330,14 @@ async function handleCommitmentRecorded(data: any) {
       where: {
         userId_pieceId: {
           userId: user.id,
-          pieceId: pieceId
-        }
+          pieceId: pieceId,
+        },
       },
       update: {
         blockNumber: BigInt(blockNumber),
         txIndex: txIndex,
         dataHash: dataHash,
-        timestamp: new Date()
+        timestamp: new Date(),
       },
       create: {
         userId: user.id,
@@ -349,9 +345,9 @@ async function handleCommitmentRecorded(data: any) {
         blockNumber: BigInt(blockNumber),
         txIndex: txIndex,
         dataHash: dataHash,
-        merkleRoot: '0x', // Would be provided in the event data
-        timestamp: new Date()
-      }
+        merkleRoot: "0x", // Would be provided in the event data
+        timestamp: new Date(),
+      },
     });
   }
 

@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { BlockchainService } from '@/lib/services/blockchainService';
-import { NotificationService } from '@/lib/services/notificationService';
+import { NextRequest, NextResponse } from "next/server";
+import { BlockchainService } from "@/lib/services/blockchainService";
+import { NotificationService } from "@/lib/services/notificationService";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 const blockchainService = new BlockchainService();
@@ -10,9 +10,9 @@ const notificationService = new NotificationService();
 export async function GET(request: NextRequest) {
   try {
     // Verify the request is from Vercel Cron (optional but recommended)
-    const authHeader = request.headers.get('authorization');
+    const authHeader = request.headers.get("authorization");
     if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const now = new Date();
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     // Find recoveries that are approved and past their delay period
     const readyRecoveries = await prisma.recovery.findMany({
       where: {
-        status: 'APPROVED'
+        status: "APPROVED",
       },
       include: {
         user: {
@@ -28,8 +28,8 @@ export async function GET(request: NextRequest) {
             id: true,
             address: true,
             email: true,
-            phone: true
-          }
+            phone: true,
+          },
         },
         approvals: {
           include: {
@@ -38,13 +38,13 @@ export async function GET(request: NextRequest) {
                 id: true,
                 name: true,
                 email: true,
-                address: true
-              }
-            }
-          }
-        }
+                address: true,
+              },
+            },
+          },
+        },
       },
-      take: 50 // Limit to prevent overwhelming the system
+      take: 50, // Limit to prevent overwhelming the system
     });
 
     let finalizationsProcessed = 0;
@@ -71,16 +71,16 @@ export async function GET(request: NextRequest) {
         const updatedRecovery = await prisma.recovery.update({
           where: { id: recovery.id },
           data: {
-            status: 'COMPLETED',
-            completedAt: now
+            status: "COMPLETED",
+            completedAt: now,
           },
           include: {
             user: {
               include: {
                 daCommitments: {
-                  orderBy: { pieceId: 'asc' }
-                }
-              }
+                  orderBy: { pieceId: "asc" },
+                },
+              },
             },
             approvals: {
               include: {
@@ -88,12 +88,12 @@ export async function GET(request: NextRequest) {
                   select: {
                     name: true,
                     email: true,
-                    address: true
-                  }
-                }
-              }
-            }
-          }
+                    address: true,
+                  },
+                },
+              },
+            },
+          },
         });
 
         // Call smart contract finalization
@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
           const txHash = await blockchainService.finalizeRecovery(recovery.user.address);
           console.log(`Recovery finalized on blockchain: ${txHash}`);
         } catch (blockchainError) {
-          console.error('Error finalizing recovery on blockchain:', blockchainError);
+          console.error("Error finalizing recovery on blockchain:", blockchainError);
           // Continue with database finalization even if blockchain fails
         }
 
@@ -109,18 +109,18 @@ export async function GET(request: NextRequest) {
         if (recovery.user.email) {
           await notificationService.sendNotification({
             userId: recovery.user.id,
-            type: 'RECOVERY_COMPLETED',
+            type: "RECOVERY_COMPLETED",
             recipient: recovery.user.email,
-            channel: 'EMAIL',
-            subject: 'Your Keymesh recovery has been completed',
+            channel: "EMAIL",
+            subject: "Your Keymesh recovery has been completed",
             templateData: {
               address: recovery.user.address,
               recoveryId: recovery.id,
               isEmergency: recovery.isEmergency,
               completedAt: now,
               totalApprovals: recovery.approvals.length,
-              daCommitments: updatedRecovery.user.daCommitments
-            }
+              daCommitments: updatedRecovery.user.daCommitments,
+            },
           });
         }
 
@@ -130,22 +130,21 @@ export async function GET(request: NextRequest) {
             await notificationService.sendNotification({
               userId: recovery.user.id,
               guardianId: approval.guardian.id,
-              type: 'RECOVERY_COMPLETED',
+              type: "RECOVERY_COMPLETED",
               recipient: approval.guardian.email,
-              channel: 'EMAIL',
-              subject: 'Recovery you approved has been completed',
+              channel: "EMAIL",
+              subject: "Recovery you approved has been completed",
               templateData: {
                 address: recovery.user.address,
                 recoveryId: recovery.id,
                 guardianName: approval.guardian.name,
-                completedAt: now
-              }
+                completedAt: now,
+              },
             });
           }
         }
 
         finalizationsProcessed++;
-
       } catch (error) {
         console.error(`Error finalizing recovery ${recovery.id}:`, error);
         finalizationErrors++;
@@ -154,9 +153,9 @@ export async function GET(request: NextRequest) {
         await prisma.recovery.update({
           where: { id: recovery.id },
           data: {
-            status: 'FAILED',
-            completedAt: now
-          }
+            status: "FAILED",
+            completedAt: now,
+          },
         });
       }
     }
@@ -167,17 +166,14 @@ export async function GET(request: NextRequest) {
     const cleanupResult = await prisma.recovery.updateMany({
       where: {
         status: {
-          in: ['COMPLETED', 'CANCELLED', 'FAILED']
+          in: ["COMPLETED", "CANCELLED", "FAILED"],
         },
-        OR: [
-          { completedAt: { lt: thirtyDaysAgo } },
-          { cancelledAt: { lt: thirtyDaysAgo } }
-        ]
+        OR: [{ completedAt: { lt: thirtyDaysAgo } }, { cancelledAt: { lt: thirtyDaysAgo } }],
       },
       data: {
         // Could add an 'archived' field or move to separate table
         // For now, we'll just leave them as is
-      }
+      },
     });
 
     return NextResponse.json({
@@ -186,16 +182,15 @@ export async function GET(request: NextRequest) {
         totalRecoveriesChecked: readyRecoveries.length,
         finalizationsProcessed,
         finalizationErrors,
-        oldRecordsFound: cleanupResult.count
+        oldRecordsFound: cleanupResult.count,
       },
-      timestamp: now.toISOString()
+      timestamp: now.toISOString(),
     });
-
   } catch (error) {
-    console.error('Error in recovery finalization cron job:', error);
+    console.error("Error in recovery finalization cron job:", error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+      { error: "Internal server error", details: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 },
     );
   }
 }

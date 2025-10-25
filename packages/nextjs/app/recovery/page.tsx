@@ -1,19 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
-  KeyIcon,
-  QrCodeIcon,
-  DocumentArrowUpIcon,
   ArrowRightIcon,
+  ClipboardDocumentIcon,
+  DocumentArrowUpIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
-  ClipboardDocumentIcon
+  KeyIcon,
+  QrCodeIcon,
 } from "@heroicons/react/24/outline";
-import { useRouter } from "next/navigation";
 
 interface RecoveryCode {
   walletAddress: string;
@@ -50,7 +50,7 @@ export default function RecoveryInitiation() {
           walletAddress,
           blockReferences: blockRefs,
           guardianAddresses: guardians,
-          version
+          version,
         };
       }
 
@@ -74,7 +74,7 @@ export default function RecoveryInitiation() {
       } catch {
         throw new Error("Invalid recovery code format");
       }
-    } catch (err: any) {
+    } catch {
       return null;
     }
   };
@@ -99,7 +99,7 @@ export default function RecoveryInitiation() {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = e => {
       const content = e.target?.result as string;
       handleInputChange(content);
     };
@@ -142,7 +142,8 @@ export default function RecoveryInitiation() {
     try {
       const text = await navigator.clipboard.readText();
       handleInputChange(text);
-    } catch (err) {
+    } catch (err: any) {
+      console.error("Clipboard error:", err);
       setError("Failed to read from clipboard. Please paste manually.");
     }
   };
@@ -157,27 +158,21 @@ export default function RecoveryInitiation() {
               <KeyIcon className="h-8 w-8 text-indigo-600" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Recover Your Wallet</h1>
-            <p className="text-gray-600">
-              Enter your recovery code to regain access to your protected wallet
-            </p>
+            <p className="text-gray-600">Enter your recovery code to regain access to your protected wallet</p>
           </div>
 
           {/* Input Method Selection */}
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Choose Input Method</CardTitle>
-              <CardDescription>
-                How would you like to provide your recovery information?
-              </CardDescription>
+              <CardDescription>How would you like to provide your recovery information?</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <button
                   onClick={() => setInputMethod("paste")}
                   className={`p-4 rounded-lg border-2 transition-all ${
-                    inputMethod === "paste"
-                      ? "border-indigo-500 bg-indigo-50"
-                      : "border-gray-200 hover:border-gray-300"
+                    inputMethod === "paste" ? "border-indigo-500 bg-indigo-50" : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
                   <ClipboardDocumentIcon className="h-8 w-8 mx-auto mb-2 text-gray-600" />
@@ -188,9 +183,7 @@ export default function RecoveryInitiation() {
                 <button
                   onClick={() => setInputMethod("qr")}
                   className={`p-4 rounded-lg border-2 transition-all ${
-                    inputMethod === "qr"
-                      ? "border-indigo-500 bg-indigo-50"
-                      : "border-gray-200 hover:border-gray-300"
+                    inputMethod === "qr" ? "border-indigo-500 bg-indigo-50" : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
                   <QrCodeIcon className="h-8 w-8 mx-auto mb-2 text-gray-600" />
@@ -201,9 +194,7 @@ export default function RecoveryInitiation() {
                 <button
                   onClick={() => setInputMethod("file")}
                   className={`p-4 rounded-lg border-2 transition-all ${
-                    inputMethod === "file"
-                      ? "border-indigo-500 bg-indigo-50"
-                      : "border-gray-200 hover:border-gray-300"
+                    inputMethod === "file" ? "border-indigo-500 bg-indigo-50" : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
                   <DocumentArrowUpIcon className="h-8 w-8 mx-auto mb-2 text-gray-600" />
@@ -231,7 +222,7 @@ export default function RecoveryInitiation() {
                     <Input
                       placeholder="Paste your recovery code here..."
                       value={recoveryInput}
-                      onChange={(e) => handleInputChange(e.target.value)}
+                      onChange={e => handleInputChange(e.target.value)}
                       className="flex-1 font-mono text-sm"
                     />
                     <Button variant="outline" onClick={pasteFromClipboard}>
@@ -250,9 +241,7 @@ export default function RecoveryInitiation() {
                   <Button onClick={handleQRScan} className="mb-4">
                     Start QR Scan
                   </Button>
-                  <p className="text-sm text-gray-500">
-                    Position the QR code in front of your camera
-                  </p>
+                  <p className="text-sm text-gray-500">Position the QR code in front of your camera</p>
                 </div>
               )}
 
@@ -272,9 +261,7 @@ export default function RecoveryInitiation() {
                     <DocumentArrowUpIcon className="h-5 w-5 mr-2" />
                     Choose File
                   </label>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Upload .json or .txt file containing your recovery data
-                  </p>
+                  <p className="text-sm text-gray-500 mt-2">Upload .json or .txt file containing your recovery data</p>
                 </div>
               )}
             </CardContent>
@@ -292,9 +279,7 @@ export default function RecoveryInitiation() {
               <CardContent className="space-y-3">
                 <div>
                   <p className="text-sm font-medium text-green-800">Wallet Address:</p>
-                  <p className="font-mono text-sm bg-white p-2 rounded border">
-                    {parsedData.walletAddress}
-                  </p>
+                  <p className="font-mono text-sm bg-white p-2 rounded border">{parsedData.walletAddress}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-green-800">Data References:</p>
@@ -304,9 +289,7 @@ export default function RecoveryInitiation() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-green-800">Guardians:</p>
-                  <p className="text-sm text-green-700">
-                    {parsedData.guardianAddresses.length} guardians configured
-                  </p>
+                  <p className="text-sm text-green-700">{parsedData.guardianAddresses.length} guardians configured</p>
                 </div>
               </CardContent>
             </Card>

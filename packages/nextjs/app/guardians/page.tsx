@@ -3,25 +3,25 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { formatAddress } from "@/lib/utils";
+import { useAccount } from "wagmi";
 import {
-  UsersIcon,
-  PlusIcon,
-  PencilIcon,
-  TrashIcon,
+  ArrowRightIcon,
   CheckCircleIcon,
   ClockIcon,
-  XCircleIcon,
   EnvelopeIcon,
-  PhoneIcon,
+  ExclamationTriangleIcon,
   IdentificationIcon,
   InformationCircleIcon,
-  ExclamationTriangleIcon,
-  ArrowRightIcon
+  PencilIcon,
+  PhoneIcon,
+  PlusIcon,
+  TrashIcon,
+  UsersIcon,
+  XCircleIcon,
 } from "@heroicons/react/24/outline";
-import { useAccount } from "wagmi";
-import { formatAddress } from "@/lib/utils";
 
 interface Guardian {
   id: string;
@@ -29,14 +29,14 @@ interface Guardian {
   email?: string;
   phone?: string;
   address?: string;
-  status: 'pending' | 'accepted' | 'declined' | 'inactive';
+  status: "pending" | "accepted" | "declined" | "inactive";
   addedAt: Date;
   acceptedAt?: Date;
   lastActivity?: Date;
 }
 
 export default function GuardianManagement() {
-  const { address, isConnected } = useAccount();
+  const { isConnected } = useAccount();
   const [guardians, setGuardians] = useState<Guardian[]>([
     {
       id: "1",
@@ -45,7 +45,7 @@ export default function GuardianManagement() {
       status: "accepted",
       addedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
       acceptedAt: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000),
-      lastActivity: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
+      lastActivity: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
     },
     {
       id: "2",
@@ -55,21 +55,21 @@ export default function GuardianManagement() {
       status: "accepted",
       addedAt: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000),
       acceptedAt: new Date(Date.now() - 24 * 24 * 60 * 60 * 1000),
-      lastActivity: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
+      lastActivity: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
     },
     {
       id: "3",
       name: "Carol Davis",
       email: "carol@example.com",
       status: "pending",
-      addedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+      addedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
     },
     {
       id: "4",
       name: "David Wilson",
       phone: "+1-555-0456",
       status: "pending",
-      addedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
+      addedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
     },
     {
       id: "5",
@@ -77,8 +77,8 @@ export default function GuardianManagement() {
       email: "eva@example.com",
       address: "0x8ba1f109551bD432803012645Hac136c4dddd567",
       status: "declined",
-      addedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
-    }
+      addedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+    },
   ]);
 
   const [showAddForm, setShowAddForm] = useState(false);
@@ -86,7 +86,7 @@ export default function GuardianManagement() {
     name: "",
     email: "",
     phone: "",
-    address: ""
+    address: "",
   });
 
   const handleAddGuardian = () => {
@@ -99,7 +99,7 @@ export default function GuardianManagement() {
       phone: newGuardian.phone || undefined,
       address: newGuardian.address || undefined,
       status: "pending",
-      addedAt: new Date()
+      addedAt: new Date(),
     };
 
     setGuardians([...guardians, guardian]);
@@ -116,38 +116,38 @@ export default function GuardianManagement() {
     console.log("Resending invitation to guardian:", id);
   };
 
-  const getStatusIcon = (status: Guardian['status']) => {
+  const getStatusIcon = (status: Guardian["status"]) => {
     switch (status) {
-      case 'accepted':
+      case "accepted":
         return <CheckCircleIcon className="h-4 w-4 text-green-600" />;
-      case 'pending':
+      case "pending":
         return <ClockIcon className="h-4 w-4 text-yellow-600" />;
-      case 'declined':
+      case "declined":
         return <XCircleIcon className="h-4 w-4 text-red-600" />;
-      case 'inactive':
+      case "inactive":
         return <XCircleIcon className="h-4 w-4 text-gray-600" />;
       default:
         return null;
     }
   };
 
-  const getStatusColor = (status: Guardian['status']) => {
+  const getStatusColor = (status: Guardian["status"]) => {
     switch (status) {
-      case 'accepted':
-        return 'bg-green-100 text-green-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'declined':
-        return 'bg-red-100 text-red-800';
-      case 'inactive':
-        return 'bg-gray-100 text-gray-800';
+      case "accepted":
+        return "bg-green-100 text-green-800";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "declined":
+        return "bg-red-100 text-red-800";
+      case "inactive":
+        return "bg-gray-100 text-gray-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
-  const acceptedGuardians = guardians.filter(g => g.status === 'accepted').length;
-  const pendingGuardians = guardians.filter(g => g.status === 'pending').length;
+  const acceptedGuardians = guardians.filter(g => g.status === "accepted").length;
+  const pendingGuardians = guardians.filter(g => g.status === "pending").length;
   const totalGuardians = guardians.length;
 
   if (!isConnected) {
@@ -157,9 +157,7 @@ export default function GuardianManagement() {
           <CardContent className="text-center py-8">
             <UsersIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">Connect Your Wallet</h2>
-            <p className="text-gray-600 mb-4">
-              Please connect your wallet to manage your guardians.
-            </p>
+            <p className="text-gray-600 mb-4">Please connect your wallet to manage your guardians.</p>
             <Button>Connect Wallet</Button>
           </CardContent>
         </Card>
@@ -178,9 +176,7 @@ export default function GuardianManagement() {
               <p className="text-gray-600">Manage the people who help protect your wallet</p>
             </div>
             <Link href="/dashboard">
-              <Button variant="outline">
-                Back to Dashboard
-              </Button>
+              <Button variant="outline">Back to Dashboard</Button>
             </Link>
           </div>
         </div>
@@ -240,14 +236,9 @@ export default function GuardianManagement() {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>Your Guardians</CardTitle>
-                  <CardDescription>
-                    People who can help you recover your wallet in case of emergency
-                  </CardDescription>
+                  <CardDescription>People who can help you recover your wallet in case of emergency</CardDescription>
                 </div>
-                <Button
-                  onClick={() => setShowAddForm(true)}
-                  disabled={totalGuardians >= 8}
-                >
+                <Button onClick={() => setShowAddForm(true)} disabled={totalGuardians >= 8}>
                   <PlusIcon className="h-4 w-4 mr-2" />
                   Add Guardian
                 </Button>
@@ -268,7 +259,7 @@ export default function GuardianManagement() {
                         <label className="text-sm font-medium">Full Name *</label>
                         <Input
                           value={newGuardian.name}
-                          onChange={(e) => setNewGuardian({...newGuardian, name: e.target.value})}
+                          onChange={e => setNewGuardian({ ...newGuardian, name: e.target.value })}
                           placeholder="Enter guardian's full name"
                         />
                       </div>
@@ -277,7 +268,7 @@ export default function GuardianManagement() {
                         <Input
                           type="email"
                           value={newGuardian.email}
-                          onChange={(e) => setNewGuardian({...newGuardian, email: e.target.value})}
+                          onChange={e => setNewGuardian({ ...newGuardian, email: e.target.value })}
                           placeholder="guardian@example.com"
                         />
                       </div>
@@ -286,7 +277,7 @@ export default function GuardianManagement() {
                         <Input
                           type="tel"
                           value={newGuardian.phone}
-                          onChange={(e) => setNewGuardian({...newGuardian, phone: e.target.value})}
+                          onChange={e => setNewGuardian({ ...newGuardian, phone: e.target.value })}
                           placeholder="+1 (555) 123-4567"
                         />
                       </div>
@@ -294,7 +285,7 @@ export default function GuardianManagement() {
                         <label className="text-sm font-medium">Ethereum Address</label>
                         <Input
                           value={newGuardian.address}
-                          onChange={(e) => setNewGuardian({...newGuardian, address: e.target.value})}
+                          onChange={e => setNewGuardian({ ...newGuardian, address: e.target.value })}
                           placeholder="0x..."
                           className="font-mono text-sm"
                         />
@@ -307,10 +298,7 @@ export default function GuardianManagement() {
                       <Button variant="outline" onClick={() => setShowAddForm(false)}>
                         Cancel
                       </Button>
-                      <Button
-                        onClick={handleAddGuardian}
-                        disabled={!newGuardian.name.trim()}
-                      >
+                      <Button onClick={handleAddGuardian} disabled={!newGuardian.name.trim()}>
                         Add Guardian
                       </Button>
                     </div>
@@ -320,7 +308,7 @@ export default function GuardianManagement() {
 
               {/* Guardian List */}
               <div className="space-y-4">
-                {guardians.map((guardian) => (
+                {guardians.map(guardian => (
                   <Card key={guardian.id} className="border-2">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
@@ -331,7 +319,9 @@ export default function GuardianManagement() {
                           <div className="flex-1">
                             <div className="flex items-center space-x-3 mb-2">
                               <h3 className="font-semibold">{guardian.name}</h3>
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(guardian.status)}`}>
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(guardian.status)}`}
+                              >
                                 {getStatusIcon(guardian.status)}
                                 <span className="ml-1">
                                   {guardian.status.charAt(0).toUpperCase() + guardian.status.slice(1)}
@@ -362,10 +352,8 @@ export default function GuardianManagement() {
 
                             <div className="mt-2 text-xs text-gray-500">
                               <div>Added: {guardian.addedAt.toLocaleDateString()}</div>
-                              {guardian.acceptedAt && (
-                                <div>Accepted: {guardian.acceptedAt.toLocaleDateString()}</div>
-                              )}
-                              {guardian.lastActivity && guardian.status === 'accepted' && (
+                              {guardian.acceptedAt && <div>Accepted: {guardian.acceptedAt.toLocaleDateString()}</div>}
+                              {guardian.lastActivity && guardian.status === "accepted" && (
                                 <div>Last activity: {guardian.lastActivity.toLocaleDateString()}</div>
                               )}
                             </div>
@@ -373,12 +361,8 @@ export default function GuardianManagement() {
                         </div>
 
                         <div className="flex flex-col space-y-2">
-                          {guardian.status === 'pending' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleResendInvitation(guardian.id)}
-                            >
+                          {guardian.status === "pending" && (
+                            <Button variant="outline" size="sm" onClick={() => handleResendInvitation(guardian.id)}>
                               Resend Invite
                             </Button>
                           )}
@@ -405,9 +389,7 @@ export default function GuardianManagement() {
                   <div className="text-center py-12">
                     <UsersIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No Guardians Yet</h3>
-                    <p className="text-gray-600 mb-4">
-                      Add trusted friends and family to help protect your wallet
-                    </p>
+                    <p className="text-gray-600 mb-4">Add trusted friends and family to help protect your wallet</p>
                     <Button onClick={() => setShowAddForm(true)}>
                       <PlusIcon className="h-4 w-4 mr-2" />
                       Add Your First Guardian
@@ -456,20 +438,16 @@ export default function GuardianManagement() {
           <Card>
             <CardHeader>
               <CardTitle>Test Your Guardian Network</CardTitle>
-              <CardDescription>
-                Verify your guardians can receive and respond to recovery requests
-              </CardDescription>
+              <CardDescription>Verify your guardians can receive and respond to recovery requests</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 mb-2">
-                    Run a test recovery to ensure your guardian network is working properly.
-                    This won't actually recover your wallet.
+                    Run a test recovery to ensure your guardian network is working properly. This won&apos;t actually recover
+                    your wallet.
                   </p>
-                  <p className="text-xs text-gray-500">
-                    Recommended: Test quarterly or after adding new guardians
-                  </p>
+                  <p className="text-xs text-gray-500">Recommended: Test quarterly or after adding new guardians</p>
                 </div>
                 <Button variant="outline" disabled={acceptedGuardians < 3}>
                   <ArrowRightIcon className="h-4 w-4 mr-2" />

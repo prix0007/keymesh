@@ -1,21 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { SetupData } from "@/app/setup/page";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { ClientAvailService } from "@/lib/services/clientAvailService";
+import { CryptoService } from "@/lib/services/cryptoService";
 import {
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
   ArrowPathIcon,
+  CheckCircleIcon,
+  CloudArrowUpIcon,
+  ExclamationTriangleIcon,
   KeyIcon,
   ShieldCheckIcon,
-  CloudArrowUpIcon,
-  UsersIcon
+  UsersIcon,
 } from "@heroicons/react/24/outline";
-import { SetupData } from "@/app/setup/page";
-import { CryptoService } from "@/lib/services/cryptoService";
-import { ClientAvailService } from "@/lib/services/clientAvailService";
 
 interface ProcessingStepProps {
   data: SetupData;
@@ -30,7 +30,7 @@ interface ProcessingStage {
   title: string;
   description: string;
   icon: React.ComponentType<any>;
-  status: 'pending' | 'processing' | 'completed' | 'error';
+  status: "pending" | "processing" | "completed" | "error";
   progress: number;
 }
 
@@ -39,45 +39,47 @@ export default function ProcessingStep({ data, walletAddress, onNext, onError, u
   const [overallProgress, setOverallProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
-  const [keyPieces, setKeyPieces] = useState<any>(null);
-  const [encryptedPieces, setEncryptedPieces] = useState<{ piece1: Uint8Array; piece2: Uint8Array; piece3: Uint8Array } | null>(null);
-  const [availCommitments, setAvailCommitments] = useState<any[]>([]);
+  const [encryptedPieces, setEncryptedPieces] = useState<{
+    piece1: Uint8Array;
+    piece2: Uint8Array;
+    piece3: Uint8Array;
+  } | null>(null);
   const [preparationComplete, setPreparationComplete] = useState(false);
   const [userConfirmed, setUserConfirmed] = useState(false);
 
   const [stages, setStages] = useState<ProcessingStage[]>([
     {
-      id: 'generate-keys',
-      title: 'Generating Key Shares',
-      description: 'Splitting your private key using Shamir Secret Sharing',
+      id: "generate-keys",
+      title: "Generating Key Shares",
+      description: "Splitting your private key using Shamir Secret Sharing",
       icon: KeyIcon,
-      status: 'pending',
-      progress: 0
+      status: "pending",
+      progress: 0,
     },
     {
-      id: 'encrypt-pieces',
-      title: 'Encrypting Key Pieces',
-      description: 'Encrypting pieces with your password and biometric data',
+      id: "encrypt-pieces",
+      title: "Encrypting Key Pieces",
+      description: "Encrypting pieces with your password and biometric data",
       icon: ShieldCheckIcon,
-      status: 'pending',
-      progress: 0
+      status: "pending",
+      progress: 0,
     },
     {
-      id: 'setup-guardians',
-      title: 'Preparing Guardian Network',
-      description: 'Configuring guardian verification system',
+      id: "setup-guardians",
+      title: "Preparing Guardian Network",
+      description: "Configuring guardian verification system",
       icon: UsersIcon,
-      status: 'pending',
-      progress: 0
+      status: "pending",
+      progress: 0,
     },
     {
-      id: 'store-avail',
-      title: 'Store on Avail DA',
-      description: 'Ready to upload encrypted pieces to decentralized storage',
+      id: "store-avail",
+      title: "Store on Avail DA",
+      description: "Ready to upload encrypted pieces to decentralized storage",
       icon: CloudArrowUpIcon,
-      status: 'pending',
-      progress: 0
-    }
+      status: "pending",
+      progress: 0,
+    },
   ]);
 
   // Phase 1: Preparation - Generate and encrypt pieces but don't submit
@@ -88,19 +90,19 @@ export default function ProcessingStep({ data, walletAddress, onNext, onError, u
       try {
         // Stage 1: Generate key shares using actual crypto
         setCurrentStageIndex(0);
-        updateStageStatus(0, 'processing', 0);
+        updateStageStatus(0, "processing", 0);
 
         // Generate a mock private key and split it
         const privateKey = await CryptoService.generatePrivateKey();
         const { pieces } = await CryptoService.splitKey(privateKey, 2, 3);
-        setKeyPieces(pieces);
+        // setKeyPieces(pieces); // pieces are used locally in this function
 
-        updateStageStatus(0, 'completed', 100);
+        updateStageStatus(0, "completed", 100);
         setOverallProgress(25);
 
         // Stage 2: Encrypt pieces with password, biometric, and guardian data
         setCurrentStageIndex(1);
-        updateStageStatus(1, 'processing', 0);
+        updateStageStatus(1, "processing", 0);
 
         // Encrypt piece 1 with password
         const piece1Encrypted = await CryptoService.encryptWithPassword(pieces[0].data, data.password);
@@ -110,7 +112,7 @@ export default function ProcessingStep({ data, walletAddress, onNext, onError, u
         if (data.biometricData) {
           piece2Encrypted = await CryptoService.encryptWithBiometric(pieces[1].data, data.biometricData);
         } else {
-          piece2Encrypted = await CryptoService.encryptWithPassword(pieces[1].data, data.password + '_bio');
+          piece2Encrypted = await CryptoService.encryptWithPassword(pieces[1].data, data.password + "_bio");
         }
 
         // Encrypt piece 3 with guardian info
@@ -119,38 +121,36 @@ export default function ProcessingStep({ data, walletAddress, onNext, onError, u
 
         setEncryptedPieces({ piece1: piece1Encrypted, piece2: piece2Encrypted, piece3: piece3Encrypted });
 
-        updateStageStatus(1, 'completed', 100);
+        updateStageStatus(1, "completed", 100);
         setOverallProgress(50);
 
         // Stage 3: Setup guardian network
         setCurrentStageIndex(2);
-        updateStageStatus(2, 'processing', 0);
+        updateStageStatus(2, "processing", 0);
 
         // Extract guardian addresses (use mock addresses for now)
-        const guardianAddresses = data.guardians.map((_, index) =>
-          `0x${'0'.repeat(39)}${(index + 1).toString()}`
-        );
+        // Extract guardian addresses (use mock addresses for now)
+        // const guardianAddresses = data.guardians.map((_, index) => `0x${"0".repeat(39)}${(index + 1).toString()}`);
 
-        updateStageStatus(2, 'completed', 100);
+        updateStageStatus(2, "completed", 100);
         setOverallProgress(75);
 
         // Stage 4: Ready to store (but don't submit yet)
         setCurrentStageIndex(3);
-        updateStageStatus(3, 'pending', 0);
+        updateStageStatus(3, "pending", 0);
         setOverallProgress(75);
 
         // Preparation complete - show confirmation
         setPreparationComplete(true);
-
       } catch (err: any) {
-        console.error('Preparation error:', err);
-        setError(err.message || 'An error occurred during preparation');
-        updateStageStatus(currentStageIndex, 'error', 0);
+        console.error("Preparation error:", err);
+        setError(err.message || "An error occurred during preparation");
+        updateStageStatus(currentStageIndex, "error", 0);
       }
     };
 
     prepareCrypto();
-  }, [isRetrying]);
+  }, [isRetrying, currentStageIndex, data.biometricData, data.guardians, data.password, preparationComplete, userConfirmed]);
 
   // Phase 2: Submission - Actually submit to Avail DA after user confirmation
   useEffect(() => {
@@ -162,94 +162,91 @@ export default function ProcessingStep({ data, walletAddress, onNext, onError, u
 
         // Stage 4: Store encrypted pieces on Avail DA
         setCurrentStageIndex(3);
-        updateStageStatus(3, 'processing', 0);
+        updateStageStatus(3, "processing", 0);
 
         const commitments = [];
 
         // Submit piece 1
         const piece1Result = await availService.submitPiece(encryptedPieces.piece1, walletAddress);
-        if (!piece1Result.success) throw new Error('Failed to store piece 1 on Avail');
+        if (!piece1Result.success) throw new Error("Failed to store piece 1 on Avail");
         commitments.push(piece1Result);
 
-        updateStageStatus(3, 'processing', 33);
+        updateStageStatus(3, "processing", 33);
 
         // Submit piece 2
         const piece2Result = await availService.submitPiece(encryptedPieces.piece2, walletAddress);
-        if (!piece2Result.success) throw new Error('Failed to store piece 2 on Avail');
+        if (!piece2Result.success) throw new Error("Failed to store piece 2 on Avail");
         commitments.push(piece2Result);
 
-        updateStageStatus(3, 'processing', 66);
+        updateStageStatus(3, "processing", 66);
 
         // Submit piece 3
         const piece3Result = await availService.submitPiece(encryptedPieces.piece3, walletAddress);
-        if (!piece3Result.success) throw new Error('Failed to store piece 3 on Avail');
+        if (!piece3Result.success) throw new Error("Failed to store piece 3 on Avail");
         commitments.push(piece3Result);
 
-        setAvailCommitments(commitments);
-        updateStageStatus(3, 'completed', 100);
+        // setAvailCommitments(commitments); // commitments are used locally in this function
+        updateStageStatus(3, "completed", 100);
         setOverallProgress(100);
 
         // Store recovery data for SuccessStep
         const blockReferences = commitments.map(c => c.blockNumber || 0);
-        const guardianAddresses = data.guardians.map((_, index) =>
-          `0x${'0'.repeat(39)}${(index + 1).toString()}`
-        );
+        // Extract guardian addresses (use mock addresses for now)
+        // const guardianAddresses = data.guardians.map((_, index) => `0x${"0".repeat(39)}${(index + 1).toString()}`);
 
         updateSetupData({
           recoveryData: {
             blockReferences,
-            guardianAddresses
-          }
+            guardianAddresses: data.guardians.map((_, index) => `0x${'0'.repeat(39)}${(index + 1).toString()}`),
+          },
         });
 
         // All stages completed - proceed to next step
         await delay(1000);
         onNext();
-
       } catch (err: any) {
-        console.error('Submission error:', err);
-        setError(err.message || 'An error occurred during data submission');
-        updateStageStatus(3, 'error', 0);
+        console.error("Submission error:", err);
+        setError(err.message || "An error occurred during data submission");
+        updateStageStatus(3, "error", 0);
       }
     };
 
     submitToStorage();
-  }, [userConfirmed, encryptedPieces]);
+  }, [userConfirmed, encryptedPieces, data.guardians, onNext, updateSetupData, walletAddress]);
 
-  const updateStageStatus = (index: number, status: ProcessingStage['status'], progress: number) => {
-    setStages(prev => prev.map((stage, i) =>
-      i === index ? { ...stage, status, progress } : stage
-    ));
+  const updateStageStatus = (index: number, status: ProcessingStage["status"], progress: number) => {
+    setStages(prev => prev.map((stage, i) => (i === index ? { ...stage, status, progress } : stage)));
   };
 
-  const simulateStageProgress = async (stageIndex: number) => {
-    const stage = stages[stageIndex];
-
-    // Simulate different processing times for each stage
-    const stageDurations = {
-      'generate-keys': 3000,
-      'encrypt-pieces': 2500,
-      'setup-guardians': 2000,
-      'store-avail': 4000
-    };
-
-    const duration = stageDurations[stage.id as keyof typeof stageDurations] || 3000;
-    const steps = 20;
-    const stepDuration = duration / steps;
-
-    for (let step = 0; step <= steps; step++) {
-      const progress = (step / steps) * 100;
-      updateStageStatus(stageIndex, 'processing', progress);
-
-      // Add some randomness to make it feel more realistic
-      await delay(stepDuration + Math.random() * 200);
-
-      // Simulate potential error (very low chance)
-      if (Math.random() < 0.01 && step > 5) {
-        throw new Error(`Failed during ${stage.title.toLowerCase()}`);
-      }
-    }
-  };
+  // Commented out unused function
+  // const simulateStageProgress = async (stageIndex: number) => {
+  //   const stage = stages[stageIndex];
+  //
+  //   // Simulate different processing times for each stage
+  //   const stageDurations = {
+  //     "generate-keys": 3000,
+  //     "encrypt-pieces": 2500,
+  //     "setup-guardians": 2000,
+  //     "store-avail": 4000,
+  //   };
+  //
+  //   const duration = stageDurations[stage.id as keyof typeof stageDurations] || 3000;
+  //   const steps = 20;
+  //   const stepDuration = duration / steps;
+  //
+  //   for (let step = 0; step <= steps; step++) {
+  //     const progress = (step / steps) * 100;
+  //     updateStageStatus(stageIndex, "processing", progress);
+  //
+  //     // Add some randomness to make it feel more realistic
+  //     await delay(stepDuration + Math.random() * 200);
+  //
+  //     // Simulate potential error (very low chance)
+  //     if (Math.random() < 0.01 && step > 5) {
+  //       throw new Error(`Failed during ${stage.title.toLowerCase()}`);
+  //     }
+  //   }
+  // };
 
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -261,7 +258,7 @@ export default function ProcessingStep({ data, walletAddress, onNext, onError, u
     setPreparationComplete(false);
     setUserConfirmed(false);
     setEncryptedPieces(null);
-    setStages(prev => prev.map(stage => ({ ...stage, status: 'pending', progress: 0 })));
+    setStages(prev => prev.map(stage => ({ ...stage, status: "pending", progress: 0 })));
   };
 
   const handleGoBack = () => {
@@ -273,8 +270,7 @@ export default function ProcessingStep({ data, walletAddress, onNext, onError, u
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">Setting Up Your Recovery</CardTitle>
         <CardDescription>
-          Please wait while we securely process your recovery configuration.
-          This may take a few minutes.
+          Please wait while we securely process your recovery configuration. This may take a few minutes.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -292,28 +288,30 @@ export default function ProcessingStep({ data, walletAddress, onNext, onError, u
           {stages.map((stage, index) => {
             const Icon = stage.icon;
             const isActive = index === currentStageIndex;
-            const isCompleted = stage.status === 'completed';
-            const isError = stage.status === 'error';
-            const isPending = stage.status === 'pending';
+            const isCompleted = stage.status === "completed";
+            const isError = stage.status === "error";
+            const isPending = stage.status === "pending";
 
             return (
               <Card
                 key={stage.id}
                 className={`border-2 transition-all ${
-                  isActive ? 'border-blue-300 bg-blue-50' :
-                  isCompleted ? 'border-green-300 bg-green-50' :
-                  isError ? 'border-red-300 bg-red-50' :
-                  'border-gray-200 bg-gray-50'
+                  isActive
+                    ? "border-blue-300 bg-blue-50"
+                    : isCompleted
+                      ? "border-green-300 bg-green-50"
+                      : isError
+                        ? "border-red-300 bg-red-50"
+                        : "border-gray-200 bg-gray-50"
                 }`}
               >
                 <CardContent className="p-4">
                   <div className="flex items-center space-x-4">
-                    <div className={`p-2 rounded-full ${
-                      isCompleted ? 'bg-green-100' :
-                      isError ? 'bg-red-100' :
-                      isActive ? 'bg-blue-100' :
-                      'bg-gray-100'
-                    }`}>
+                    <div
+                      className={`p-2 rounded-full ${
+                        isCompleted ? "bg-green-100" : isError ? "bg-red-100" : isActive ? "bg-blue-100" : "bg-gray-100"
+                      }`}
+                    >
                       {isCompleted ? (
                         <CheckCircleIcon className="h-6 w-6 text-green-600" />
                       ) : isError ? (
@@ -326,20 +324,30 @@ export default function ProcessingStep({ data, walletAddress, onNext, onError, u
                     </div>
 
                     <div className="flex-1">
-                      <h3 className={`font-medium ${
-                        isCompleted ? 'text-green-800' :
-                        isError ? 'text-red-800' :
-                        isActive ? 'text-blue-800' :
-                        'text-gray-600'
-                      }`}>
+                      <h3
+                        className={`font-medium ${
+                          isCompleted
+                            ? "text-green-800"
+                            : isError
+                              ? "text-red-800"
+                              : isActive
+                                ? "text-blue-800"
+                                : "text-gray-600"
+                        }`}
+                      >
                         {stage.title}
                       </h3>
-                      <p className={`text-sm ${
-                        isCompleted ? 'text-green-600' :
-                        isError ? 'text-red-600' :
-                        isActive ? 'text-blue-600' :
-                        'text-gray-500'
-                      }`}>
+                      <p
+                        className={`text-sm ${
+                          isCompleted
+                            ? "text-green-600"
+                            : isError
+                              ? "text-red-600"
+                              : isActive
+                                ? "text-blue-600"
+                                : "text-gray-500"
+                        }`}
+                      >
                         {stage.description}
                       </p>
 
@@ -351,10 +359,10 @@ export default function ProcessingStep({ data, walletAddress, onNext, onError, u
                     </div>
 
                     <div className="text-sm font-medium">
-                      {isCompleted && '✓'}
-                      {isError && '✗'}
+                      {isCompleted && "✓"}
+                      {isError && "✗"}
                       {isActive && `${Math.round(stage.progress)}%`}
-                      {isPending && '⏳'}
+                      {isPending && "⏳"}
                     </div>
                   </div>
                 </CardContent>
@@ -398,11 +406,13 @@ export default function ProcessingStep({ data, walletAddress, onNext, onError, u
                 <div>
                   <h3 className="font-medium text-green-800 text-lg mb-2">Ready to Finalize Setup</h3>
                   <p className="text-sm text-green-700 mb-4">
-                    Your key pieces have been generated and encrypted. Click below to permanently store them on Avail DA and complete your recovery setup.
+                    Your key pieces have been generated and encrypted. Click below to permanently store them on Avail DA
+                    and complete your recovery setup.
                   </p>
                   <div className="bg-white p-3 rounded border">
                     <p className="text-xs text-green-800">
-                      ⚠️ <strong>Final Step:</strong> Once confirmed, your encrypted key pieces will be permanently stored on the blockchain. This action cannot be undone.
+                      ⚠️ <strong>Final Step:</strong> Once confirmed, your encrypted key pieces will be permanently
+                      stored on the blockchain. This action cannot be undone.
                     </p>
                   </div>
                 </div>
@@ -414,15 +424,12 @@ export default function ProcessingStep({ data, walletAddress, onNext, onError, u
                       setEncryptedPieces(null);
                       setOverallProgress(0);
                       setCurrentStageIndex(0);
-                      setStages(prev => prev.map(stage => ({ ...stage, status: 'pending', progress: 0 })));
+                      setStages(prev => prev.map(stage => ({ ...stage, status: "pending", progress: 0 })));
                     }}
                   >
                     Cancel & Start Over
                   </Button>
-                  <Button
-                    onClick={() => setUserConfirmed(true)}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
+                  <Button onClick={() => setUserConfirmed(true)} className="bg-green-600 hover:bg-green-700">
                     Confirm & Store Key Pieces
                   </Button>
                 </div>
@@ -434,7 +441,7 @@ export default function ProcessingStep({ data, walletAddress, onNext, onError, u
         {/* Security Notes */}
         {!error && !preparationComplete && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-medium text-blue-900 mb-2">🔒 What's Happening</h4>
+            <h4 className="font-medium text-blue-900 mb-2">🔒 What&apos;s Happening</h4>
             <ul className="text-sm text-blue-800 space-y-1">
               <li>• Your private key is being split into 3 encrypted pieces</li>
               <li>• Each piece is encrypted with different authentication factors</li>
@@ -461,7 +468,7 @@ export default function ProcessingStep({ data, walletAddress, onNext, onError, u
         {/* Processing Note */}
         {!error && overallProgress < 100 && (
           <div className="text-center text-sm text-gray-600">
-            <p>Please don't close this page while setup is in progress.</p>
+            <p>Please don&apos;t close this page while setup is in progress.</p>
             <p>This process ensures maximum security for your wallet recovery.</p>
           </div>
         )}

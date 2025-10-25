@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { requireAuth } from '@/lib/auth';
+import { NextRequest, NextResponse } from "next/server";
+import { requireAuth } from "@/lib/auth";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const guardianships = await prisma.guardian.findMany({
       where: {
         address: userOrResponse.address,
-        status: 'ACCEPTED'
+        status: "ACCEPTED",
       },
       include: {
         user: {
@@ -28,8 +28,8 @@ export async function GET(request: NextRequest) {
             recoveries: {
               where: {
                 status: {
-                  in: ['INITIATED', 'AWAITING_APPROVALS', 'APPROVED']
-                }
+                  in: ["INITIATED", "AWAITING_APPROVALS", "APPROVED"],
+                },
               },
               select: {
                 id: true,
@@ -39,26 +39,26 @@ export async function GET(request: NextRequest) {
                 approvals: {
                   where: {
                     guardian: {
-                      address: userOrResponse.address
-                    }
+                      address: userOrResponse.address,
+                    },
                   },
                   select: {
                     id: true,
                     approvedAt: true,
-                    signature: true
-                  }
-                }
+                    signature: true,
+                  },
+                },
               },
               take: 1,
-              orderBy: { initiatedAt: 'desc' }
-            }
-          }
-        }
+              orderBy: { initiatedAt: "desc" },
+            },
+          },
+        },
       },
-      orderBy: { addedAt: 'desc' }
+      orderBy: { addedAt: "desc" },
     });
 
-    const formattedGuardianships = guardianships.map(guardianship => ({
+    const formattedGuardianships = guardianships.map((guardianship: any) => ({
       guardianshipId: guardianship.id,
       user: {
         address: guardianship.user.address,
@@ -66,32 +66,26 @@ export async function GET(request: NextRequest) {
         lastHeartbeat: guardianship.user.lastHeartbeat,
         createdAt: guardianship.user.createdAt,
         daysSinceLastHeartbeat: Math.floor(
-          (Date.now() - guardianship.user.lastHeartbeat.getTime()) / (1000 * 60 * 60 * 24)
-        )
+          (Date.now() - guardianship.user.lastHeartbeat.getTime()) / (1000 * 60 * 60 * 24),
+        ),
       },
       guardianInfo: {
         name: guardianship.name,
         addedAt: guardianship.addedAt,
-        acceptedAt: guardianship.acceptedAt
+        acceptedAt: guardianship.acceptedAt,
       },
       activeRecovery: guardianship.user.recoveries[0] || null,
-      hasApproved: guardianship.user.recoveries[0]?.approvals.length > 0
+      hasApproved: guardianship.user.recoveries[0]?.approvals.length > 0,
     }));
 
     return NextResponse.json({
       guardianships: formattedGuardianships,
       total: formattedGuardianships.length,
-      activeRecoveries: formattedGuardianships.filter(g => g.activeRecovery).length,
-      pendingApprovals: formattedGuardianships.filter(
-        g => g.activeRecovery && !g.hasApproved
-      ).length
+      activeRecoveries: formattedGuardianships.filter((g: any) => g.activeRecovery).length,
+      pendingApprovals: formattedGuardianships.filter((g: any) => g.activeRecovery && !g.hasApproved).length,
     });
-
   } catch (error) {
-    console.error('Error fetching guardianships:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error("Error fetching guardianships:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

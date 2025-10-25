@@ -1,22 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatAddress } from "@/lib/utils";
 import {
-  CheckCircleIcon,
-  KeyIcon,
-  ShieldCheckIcon,
   ArrowRightIcon,
+  CheckCircleIcon,
   DocumentDuplicateIcon,
+  ExclamationTriangleIcon,
   EyeIcon,
   EyeSlashIcon,
   InformationCircleIcon,
-  ExclamationTriangleIcon
+  KeyIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
-import { formatAddress } from "@/lib/utils";
 
 export default function RecoverySuccess() {
   const params = useParams();
@@ -55,7 +55,7 @@ export default function RecoverySuccess() {
     "Transfer your assets to a newly generated wallet",
     "Set up Keymesh protection for your new wallet",
     "Never share your private key with anyone",
-    "Consider this wallet address compromised until assets are moved"
+    "Consider this wallet address compromised until assets are moved",
   ];
 
   return (
@@ -67,12 +67,8 @@ export default function RecoverySuccess() {
             <div className="mx-auto mb-6 p-4 bg-green-100 rounded-full w-20 h-20 flex items-center justify-center">
               <CheckCircleIcon className="h-12 w-12 text-green-600" />
             </div>
-            <h1 className="text-4xl font-bold text-green-800 mb-2">
-              🎉 Recovery Successful!
-            </h1>
-            <p className="text-lg text-green-700 mb-4">
-              Your wallet has been successfully recovered
-            </p>
+            <h1 className="text-4xl font-bold text-green-800 mb-2">🎉 Recovery Successful!</h1>
+            <p className="text-lg text-green-700 mb-4">Your wallet has been successfully recovered</p>
             <div className="bg-white rounded-lg p-4 inline-block border-2 border-green-200">
               <p className="text-sm text-gray-600 mb-1">Recovered Wallet:</p>
               <p className="font-mono text-lg font-medium">{formatAddress(walletAddress, 8)}</p>
@@ -115,7 +111,7 @@ export default function RecoverySuccess() {
                 Your Recovered Private Key
               </CardTitle>
               <CardDescription className="text-amber-700">
-                Store this safely - it's the only way to access your wallet
+                Store this safely - it&apos;s the only way to access your wallet
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -127,29 +123,17 @@ export default function RecoverySuccess() {
                       onClick={() => setShowPrivateKey(!showPrivateKey)}
                       className="p-1 text-amber-600 hover:text-amber-800"
                     >
-                      {showPrivateKey ? (
-                        <EyeSlashIcon className="h-4 w-4" />
-                      ) : (
-                        <EyeIcon className="h-4 w-4" />
-                      )}
+                      {showPrivateKey ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
                     </button>
-                    <button
-                      onClick={copyPrivateKey}
-                      className="p-1 text-amber-600 hover:text-amber-800"
-                    >
+                    <button onClick={copyPrivateKey} className="p-1 text-amber-600 hover:text-amber-800">
                       <DocumentDuplicateIcon className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
                 <div className="font-mono text-sm break-all bg-gray-100 p-3 rounded border">
-                  {showPrivateKey
-                    ? reconstructedPrivateKey
-                    : "•".repeat(66)
-                  }
+                  {showPrivateKey ? reconstructedPrivateKey : "•".repeat(66)}
                 </div>
-                {privateKeyCopied && (
-                  <p className="text-sm text-green-600 mt-2">✓ Copied to clipboard!</p>
-                )}
+                {privateKeyCopied && <p className="text-sm text-green-600 mt-2">✓ Copied to clipboard!</p>}
               </div>
 
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -158,9 +142,8 @@ export default function RecoverySuccess() {
                   <div>
                     <h4 className="font-medium text-red-800 mb-1">⚠️ Critical Security Warning</h4>
                     <p className="text-sm text-red-700">
-                      This private key gives complete control over your wallet.
-                      Never share it with anyone. Consider this wallet compromised
-                      until you move your assets to a new wallet.
+                      This private key gives complete control over your wallet. Never share it with anyone. Consider
+                      this wallet compromised until you move your assets to a new wallet.
                     </p>
                   </div>
                 </div>
@@ -175,9 +158,7 @@ export default function RecoverySuccess() {
                 <InformationCircleIcon className="h-5 w-5 mr-2" />
                 Important Next Steps
               </CardTitle>
-              <CardDescription>
-                Follow these steps to secure your recovered assets
-              </CardDescription>
+              <CardDescription>Follow these steps to secure your recovered assets</CardDescription>
             </CardHeader>
             <CardContent>
               <ol className="space-y-3">
@@ -197,9 +178,7 @@ export default function RecoverySuccess() {
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>How to Import Your Wallet</CardTitle>
-              <CardDescription>
-                Use your private key to import the wallet into popular wallet apps
-              </CardDescription>
+              <CardDescription>Use your private key to import the wallet into popular wallet apps</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -208,15 +187,15 @@ export default function RecoverySuccess() {
                   <ol className="text-sm text-gray-600 space-y-1">
                     <li>1. Open MetaMask</li>
                     <li>2. Click account icon → Import Account</li>
-                    <li>3. Select "Private Key"</li>
+                    <li>3. Select &quot;Private Key&quot;</li>
                     <li>4. Paste your private key</li>
                   </ol>
                 </div>
                 <div className="border rounded-lg p-4">
                   <h4 className="font-medium mb-2">Other Wallets</h4>
                   <ol className="text-sm text-gray-600 space-y-1">
-                    <li>1. Look for "Import" or "Add Account"</li>
-                    <li>2. Choose "Private Key" option</li>
+                    <li>1. Look for &quot;Import&quot; or &quot;Add Account&quot;</li>
+                    <li>2. Choose &quot;Private Key&quot; option</li>
                     <li>3. Enter your private key</li>
                     <li>4. Verify the wallet address matches</li>
                   </ol>
@@ -234,11 +213,7 @@ export default function RecoverySuccess() {
                   Set Up New Protection
                 </Button>
               </Link>
-              <Button
-                onClick={handleGoToDashboard}
-                disabled={isRedirecting}
-                className="w-full"
-              >
+              <Button onClick={handleGoToDashboard} disabled={isRedirecting} className="w-full">
                 {isRedirecting ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -254,9 +229,7 @@ export default function RecoverySuccess() {
             </div>
 
             <div className="text-center">
-              <p className="text-sm text-gray-500">
-                Need help? Contact our support team or check the documentation.
-              </p>
+              <p className="text-sm text-gray-500">Need help? Contact our support team or check the documentation.</p>
             </div>
           </div>
 
@@ -267,10 +240,18 @@ export default function RecoverySuccess() {
             </CardHeader>
             <CardContent>
               <div className="text-sm text-gray-600 space-y-1">
-                <p><strong>Recovery Time:</strong> {new Date().toLocaleString()}</p>
-                <p><strong>Method:</strong> Social Recovery</p>
-                <p><strong>Wallet:</strong> {walletAddress}</p>
-                <p><strong>Status:</strong> <span className="text-green-600 font-medium">Completed Successfully</span></p>
+                <p>
+                  <strong>Recovery Time:</strong> {new Date().toLocaleString()}
+                </p>
+                <p>
+                  <strong>Method:</strong> Social Recovery
+                </p>
+                <p>
+                  <strong>Wallet:</strong> {walletAddress}
+                </p>
+                <p>
+                  <strong>Status:</strong> <span className="text-green-600 font-medium">Completed Successfully</span>
+                </p>
               </div>
             </CardContent>
           </Card>

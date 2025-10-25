@@ -1,31 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { formatAddress } from "@/lib/utils";
+import { useAccount } from "wagmi";
 import {
+  ArrowDownTrayIcon,
+  ArrowRightIcon,
+  BellIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  CloudArrowUpIcon,
+  CogIcon,
+  DocumentDuplicateIcon,
+  ExclamationTriangleIcon,
+  EyeIcon,
+  HeartIcon,
+  InformationCircleIcon,
   KeyIcon,
   ShieldCheckIcon,
   UsersIcon,
-  ClockIcon,
-  HeartIcon,
-  ExclamationTriangleIcon,
-  CheckCircleIcon,
-  EyeIcon,
-  ArrowRightIcon,
-  CogIcon,
-  DocumentTextIcon,
-  InformationCircleIcon,
-  PlusIcon,
-  BellIcon,
-  CloudArrowUpIcon,
-  DocumentDuplicateIcon,
-  ArrowDownTrayIcon
 } from "@heroicons/react/24/outline";
-import { useAccount } from "wagmi";
-import { formatAddress } from "@/lib/utils";
 
 interface RecoverySetup {
   hasPassword: boolean;
@@ -38,17 +36,17 @@ interface RecoverySetup {
 
 interface ActiveRecovery {
   id: string;
-  type: 'password_social' | 'biometric_social';
+  type: "password_social" | "biometric_social";
   initiatedAt: Date;
   approvals: number;
   requiredApprovals: number;
   timeRemaining: number; // hours
-  status: 'pending' | 'approved' | 'expired';
+  status: "pending" | "approved" | "expired";
 }
 
 interface Notification {
   id: string;
-  type: 'guardian_request' | 'recovery_approved' | 'heartbeat_missed' | 'system';
+  type: "guardian_request" | "recovery_approved" | "heartbeat_missed" | "system";
   title: string;
   message: string;
   timestamp: Date;
@@ -75,60 +73,14 @@ interface DAData {
 export default function Dashboard() {
   const { address, isConnected } = useAccount();
   const [recoverySetup, setRecoverySetup] = useState<RecoverySetup | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [activeRecovery, setActiveRecovery] = useState<ActiveRecovery | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [heartbeatStatus, setHeartbeatStatus] = useState<'active' | 'warning' | 'critical'>('active');
-  const [lastHeartbeat, setLastHeartbeat] = useState<Date>(new Date());
+  const [heartbeatStatus, setHeartbeatStatus] = useState<"active" | "warning" | "critical">("active");
   const [daData, setDaData] = useState<DAData | null>(null);
   const [loadingDA, setLoadingDA] = useState(false);
 
-  // Load user data
-  useEffect(() => {
-    if (isConnected && address) {
-      // Simulate loading user data
-      setRecoverySetup({
-        hasPassword: true,
-        hasBiometric: true,
-        biometricType: 'face',
-        guardianCount: 5,
-        isActive: true,
-        lastActivity: new Date(Date.now() - 24 * 60 * 60 * 1000) // 1 day ago
-      });
-
-      // Mock notifications
-      setNotifications([
-        {
-          id: '1',
-          type: 'guardian_request',
-          title: 'Guardian Approval Needed',
-          message: 'John Doe is requesting to become your guardian',
-          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-          isRead: false
-        },
-        {
-          id: '2',
-          type: 'heartbeat_missed',
-          title: 'Heartbeat Reminder',
-          message: 'Your last activity was 5 days ago. Consider sending a heartbeat.',
-          timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
-          isRead: false
-        }
-      ]);
-
-      // Mock heartbeat status
-      const daysSinceLastActivity = Math.floor((Date.now() - new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).getTime()) / (1000 * 60 * 60 * 24));
-      if (daysSinceLastActivity > 30) {
-        setHeartbeatStatus('critical');
-      } else if (daysSinceLastActivity > 14) {
-        setHeartbeatStatus('warning');
-      }
-
-      // Load DA data
-      loadDAData();
-    }
-  }, [isConnected, address]);
-
-  const loadDAData = async () => {
+  const loadDAData = useCallback(async () => {
     if (!address) return;
 
     setLoadingDA(true);
@@ -139,25 +91,84 @@ export default function Dashboard() {
       if (response.ok) {
         setDaData(data);
       } else {
-        console.error('Error loading DA data:', data.error);
+        console.error("Error loading DA data:", data.error);
       }
     } catch (error) {
-      console.error('Error loading DA data:', error);
+      console.error("Error loading DA data:", error);
     } finally {
       setLoadingDA(false);
     }
-  };
+  }, [address]);
+
+  // Load user data
+  useEffect(() => {
+    if (isConnected && address) {
+      // Simulate loading user data
+      setRecoverySetup({
+        hasPassword: true,
+        hasBiometric: true,
+        biometricType: "face",
+        guardianCount: 5,
+        isActive: true,
+        lastActivity: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
+      });
+
+      // Mock notifications
+      setNotifications([
+        {
+          id: "1",
+          type: "guardian_request",
+          title: "Guardian Approval Needed",
+          message: "John Doe is requesting to become your guardian",
+          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+          isRead: false,
+        },
+        {
+          id: "2",
+          type: "heartbeat_missed",
+          title: "Heartbeat Reminder",
+          message: "Your last activity was 5 days ago. Consider sending a heartbeat.",
+          timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
+          isRead: false,
+        },
+      ]);
+
+      // Mock active recovery - uncomment to show active recovery UI
+      // setActiveRecovery({
+      //   id: "recovery-123",
+      //   type: "password_social",
+      //   initiatedAt: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12 hours ago
+      //   approvals: 2,
+      //   requiredApprovals: 3,
+      //   timeRemaining: 156, // hours remaining
+      //   status: "pending",
+      // });
+
+      // Mock heartbeat status
+      const daysSinceLastActivity = Math.floor(
+        (Date.now() - new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).getTime()) / (1000 * 60 * 60 * 24),
+      );
+      if (daysSinceLastActivity > 30) {
+        setHeartbeatStatus("critical");
+      } else if (daysSinceLastActivity > 14) {
+        setHeartbeatStatus("warning");
+      }
+
+      // Load DA data
+      loadDAData();
+    }
+  }, [isConnected, address, loadDAData]);
 
   const downloadDAData = async (submission: DASubmission) => {
     try {
-      const response = await fetch('/api/avail/retrieve', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/avail/retrieve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           blockNumber: submission.blockNumber,
           txIndex: submission.txIndex,
-          expectedHash: submission.dataHash
-        })
+          expectedHash: submission.dataHash,
+        }),
       });
 
       const result = await response.json();
@@ -172,8 +183,8 @@ export default function Dashboard() {
         const blob = new Blob([byteArray]);
 
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
+        const a = document.createElement("a");
+        a.style.display = "none";
         a.href = url;
         a.download = `recovery-data-${submission.blockNumber}-${submission.txIndex}.bin`;
         document.body.appendChild(a);
@@ -181,11 +192,11 @@ export default function Dashboard() {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
       } else {
-        alert('Failed to retrieve data: ' + (result.error || 'Unknown error'));
+        alert("Failed to retrieve data: " + (result.error || "Unknown error"));
       }
     } catch (error) {
-      console.error('Error downloading DA data:', error);
-      alert('Error downloading data');
+      console.error("Error downloading DA data:", error);
+      alert("Error downloading data");
     }
   };
 
@@ -196,9 +207,7 @@ export default function Dashboard() {
           <CardContent className="text-center py-8">
             <KeyIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">Connect Your Wallet</h2>
-            <p className="text-gray-600 mb-4">
-              Please connect your wallet to view your recovery dashboard.
-            </p>
+            <p className="text-gray-600 mb-4">Please connect your wallet to view your recovery dashboard.</p>
             <Button>Connect Wallet</Button>
           </CardContent>
         </Card>
@@ -207,8 +216,13 @@ export default function Dashboard() {
   }
 
   const unreadNotifications = notifications.filter(n => !n.isRead).length;
-  const recoveryProgress = recoverySetup ?
-    (Number(recoverySetup.hasPassword) + Number(recoverySetup.hasBiometric) + (recoverySetup.guardianCount >= 5 ? 1 : 0)) / 3 * 100 : 0;
+  const recoveryProgress = recoverySetup
+    ? ((Number(recoverySetup.hasPassword) +
+        Number(recoverySetup.hasBiometric) +
+        (recoverySetup.guardianCount >= 5 ? 1 : 0)) /
+        3) *
+      100
+    : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50">
@@ -266,37 +280,47 @@ export default function Dashboard() {
                 <Progress value={recoveryProgress} className="h-3" />
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className={`p-3 rounded-lg border-2 ${recoverySetup?.hasPassword ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
+                  <div
+                    className={`p-3 rounded-lg border-2 ${recoverySetup?.hasPassword ? "border-green-200 bg-green-50" : "border-gray-200 bg-gray-50"}`}
+                  >
                     <div className="flex items-center space-x-2 mb-1">
-                      <KeyIcon className={`h-4 w-4 ${recoverySetup?.hasPassword ? 'text-green-600' : 'text-gray-400'}`} />
+                      <KeyIcon
+                        className={`h-4 w-4 ${recoverySetup?.hasPassword ? "text-green-600" : "text-gray-400"}`}
+                      />
                       <span className="font-medium text-sm">Password</span>
                       {recoverySetup?.hasPassword && <CheckCircleIcon className="h-4 w-4 text-green-600" />}
                     </div>
-                    <p className="text-xs text-gray-600">
-                      {recoverySetup?.hasPassword ? 'Protected' : 'Not set up'}
-                    </p>
+                    <p className="text-xs text-gray-600">{recoverySetup?.hasPassword ? "Protected" : "Not set up"}</p>
                   </div>
 
-                  <div className={`p-3 rounded-lg border-2 ${recoverySetup?.hasBiometric ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
+                  <div
+                    className={`p-3 rounded-lg border-2 ${recoverySetup?.hasBiometric ? "border-green-200 bg-green-50" : "border-gray-200 bg-gray-50"}`}
+                  >
                     <div className="flex items-center space-x-2 mb-1">
-                      <ShieldCheckIcon className={`h-4 w-4 ${recoverySetup?.hasBiometric ? 'text-green-600' : 'text-gray-400'}`} />
+                      <ShieldCheckIcon
+                        className={`h-4 w-4 ${recoverySetup?.hasBiometric ? "text-green-600" : "text-gray-400"}`}
+                      />
                       <span className="font-medium text-sm">Biometric</span>
                       {recoverySetup?.hasBiometric && <CheckCircleIcon className="h-4 w-4 text-green-600" />}
                     </div>
                     <p className="text-xs text-gray-600">
-                      {recoverySetup?.hasBiometric ? `${recoverySetup.biometricType} ID` : 'Not set up'}
+                      {recoverySetup?.hasBiometric ? `${recoverySetup.biometricType} ID` : "Not set up"}
                     </p>
                   </div>
 
-                  <div className={`p-3 rounded-lg border-2 ${(recoverySetup?.guardianCount || 0) >= 5 ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
+                  <div
+                    className={`p-3 rounded-lg border-2 ${(recoverySetup?.guardianCount || 0) >= 5 ? "border-green-200 bg-green-50" : "border-gray-200 bg-gray-50"}`}
+                  >
                     <div className="flex items-center space-x-2 mb-1">
-                      <UsersIcon className={`h-4 w-4 ${(recoverySetup?.guardianCount || 0) >= 5 ? 'text-green-600' : 'text-gray-400'}`} />
+                      <UsersIcon
+                        className={`h-4 w-4 ${(recoverySetup?.guardianCount || 0) >= 5 ? "text-green-600" : "text-gray-400"}`}
+                      />
                       <span className="font-medium text-sm">Guardians</span>
-                      {(recoverySetup?.guardianCount || 0) >= 5 && <CheckCircleIcon className="h-4 w-4 text-green-600" />}
+                      {(recoverySetup?.guardianCount || 0) >= 5 && (
+                        <CheckCircleIcon className="h-4 w-4 text-green-600" />
+                      )}
                     </div>
-                    <p className="text-xs text-gray-600">
-                      {recoverySetup?.guardianCount || 0} of 5 active
-                    </p>
+                    <p className="text-xs text-gray-600">{recoverySetup?.guardianCount || 0} of 5 active</p>
                   </div>
                 </div>
               </CardContent>
@@ -317,7 +341,7 @@ export default function Dashboard() {
                 <CardContent className="space-y-4">
                   <div className="flex justify-between items-center">
                     <div>
-                      <p className="font-medium">Recovery Type: {activeRecovery.type.replace('_', ' + ')}</p>
+                      <p className="font-medium">Recovery Type: {activeRecovery.type.replace("_", " + ")}</p>
                       <p className="text-sm text-gray-600">
                         Initiated {new Date(activeRecovery.initiatedAt).toLocaleDateString()}
                       </p>
@@ -392,7 +416,7 @@ export default function Dashboard() {
                       </div>
                       <div className="text-left">
                         <div className="font-medium">Send Heartbeat</div>
-                        <div className="text-sm text-gray-500">Confirm you're active</div>
+                        <div className="text-sm text-gray-500">Confirm you&apos;re active</div>
                       </div>
                     </div>
                     <ArrowRightIcon className="h-4 w-4 ml-auto" />
@@ -428,7 +452,7 @@ export default function Dashboard() {
                     <CardDescription>Your recovery data stored on decentralized availability</CardDescription>
                   </div>
                   <Button variant="outline" size="sm" onClick={loadDAData} disabled={loadingDA}>
-                    {loadingDA ? 'Loading...' : 'Refresh'}
+                    {loadingDA ? "Loading..." : "Refresh"}
                   </Button>
                 </div>
               </CardHeader>
@@ -453,9 +477,7 @@ export default function Dashboard() {
                         <div className="text-xs text-gray-600">Total Size</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-purple-600">
-                          ${daData.totalCost.toFixed(4)}
-                        </div>
+                        <div className="text-2xl font-bold text-purple-600">${daData.totalCost.toFixed(4)}</div>
                         <div className="text-xs text-gray-600">Storage Cost</div>
                       </div>
                     </div>
@@ -473,14 +495,13 @@ export default function Dashboard() {
                               <DocumentDuplicateIcon className="h-4 w-4 text-indigo-600" />
                             </div>
                             <div>
-                              <div className="font-medium text-sm">
-                                Piece #{index + 1}
-                              </div>
+                              <div className="font-medium text-sm">Piece #{index + 1}</div>
                               <div className="text-xs text-gray-500">
                                 Block {submission.blockNumber}, TX {submission.txIndex}
                               </div>
                               <div className="text-xs text-gray-400">
-                                {new Date(submission.timestamp).toLocaleDateString()} • {(submission.dataSize / 1024).toFixed(1)}KB
+                                {new Date(submission.timestamp).toLocaleDateString()} •{" "}
+                                {(submission.dataSize / 1024).toFixed(1)}KB
                               </div>
                             </div>
                           </div>
@@ -546,17 +567,25 @@ export default function Dashboard() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Heartbeat Status */}
-            <Card className={`${
-              heartbeatStatus === 'critical' ? 'border-red-200 bg-red-50' :
-              heartbeatStatus === 'warning' ? 'border-yellow-200 bg-yellow-50' :
-              'border-green-200 bg-green-50'
-            }`}>
+            <Card
+              className={`${
+                heartbeatStatus === "critical"
+                  ? "border-red-200 bg-red-50"
+                  : heartbeatStatus === "warning"
+                    ? "border-yellow-200 bg-yellow-50"
+                    : "border-green-200 bg-green-50"
+              }`}
+            >
               <CardHeader className="pb-3">
-                <CardTitle className={`text-lg flex items-center space-x-2 ${
-                  heartbeatStatus === 'critical' ? 'text-red-800' :
-                  heartbeatStatus === 'warning' ? 'text-yellow-800' :
-                  'text-green-800'
-                }`}>
+                <CardTitle
+                  className={`text-lg flex items-center space-x-2 ${
+                    heartbeatStatus === "critical"
+                      ? "text-red-800"
+                      : heartbeatStatus === "warning"
+                        ? "text-yellow-800"
+                        : "text-green-800"
+                  }`}
+                >
                   <HeartIcon className="h-5 w-5" />
                   <span>Activity Status</span>
                 </CardTitle>
@@ -566,11 +595,11 @@ export default function Dashboard() {
                   <div className="flex justify-between">
                     <span className="text-sm">Last Activity:</span>
                     <span className="text-sm font-medium">
-                      {lastHeartbeat.toLocaleDateString()}
+                      {recoverySetup?.lastActivity.toLocaleDateString() || "Never"}
                     </span>
                   </div>
 
-                  {heartbeatStatus === 'critical' && (
+                  {heartbeatStatus === "critical" && (
                     <div className="bg-red-100 border border-red-300 rounded p-3">
                       <div className="flex items-start space-x-2">
                         <ExclamationTriangleIcon className="h-4 w-4 text-red-600 mt-0.5" />
@@ -582,7 +611,7 @@ export default function Dashboard() {
                     </div>
                   )}
 
-                  {heartbeatStatus === 'warning' && (
+                  {heartbeatStatus === "warning" && (
                     <div className="bg-yellow-100 border border-yellow-300 rounded p-3">
                       <div className="flex items-start space-x-2">
                         <InformationCircleIcon className="h-4 w-4 text-yellow-600 mt-0.5" />
@@ -616,8 +645,11 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {notifications.slice(0, 3).map((notification) => (
-                    <div key={notification.id} className={`p-3 rounded-lg border ${notification.isRead ? 'bg-gray-50' : 'bg-blue-50 border-blue-200'}`}>
+                  {notifications.slice(0, 3).map(notification => (
+                    <div
+                      key={notification.id}
+                      className={`p-3 rounded-lg border ${notification.isRead ? "bg-gray-50" : "bg-blue-50 border-blue-200"}`}
+                    >
                       <div className="flex items-start space-x-2">
                         <BellIcon className="h-4 w-4 text-gray-500 mt-0.5" />
                         <div className="flex-1">

@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { MockAvailService } from '@/lib/services/mockAvailService';
+import { NextRequest, NextResponse } from "next/server";
+import { MockAvailService } from "@/lib/services/mockAvailService";
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const walletAddress = searchParams.get('address');
+    const walletAddress = searchParams.get("address");
 
     if (!walletAddress) {
-      return NextResponse.json({ error: 'Wallet address is required' }, { status: 400 });
+      return NextResponse.json({ error: "Wallet address is required" }, { status: 400 });
     }
 
     const availService = new MockAvailService();
@@ -18,8 +18,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(userData);
   } catch (error) {
-    console.error('Error fetching user DA data:', error);
-    return NextResponse.json({ error: 'Failed to fetch user data' }, { status: 500 });
+    console.error("Error fetching user DA data:", error);
+    return NextResponse.json({ error: "Failed to fetch user data" }, { status: 500 });
   }
 }
 
@@ -58,7 +58,7 @@ async function getUserDAData(availService: MockAvailService, walletAddress: stri
       try {
         parsedMetadata = JSON.parse(sub.metadata);
       } catch (error) {
-        console.error('Error parsing metadata:', error);
+        console.error("Error parsing metadata:", error);
       }
 
       return {
@@ -68,7 +68,7 @@ async function getUserDAData(availService: MockAvailService, walletAddress: stri
         merkleRoot: sub.merkle_root,
         dataSize: sub.data_size,
         timestamp: sub.timestamp, // Keep as timestamp number for proper serialization
-        metadata: parsedMetadata
+        metadata: parsedMetadata,
       };
     });
 
@@ -76,10 +76,10 @@ async function getUserDAData(availService: MockAvailService, walletAddress: stri
       submissions: enrichedSubmissions,
       totalSize,
       totalCost: estimatedCost.cost,
-      currency: estimatedCost.currency
+      currency: estimatedCost.currency,
     };
   } catch (error) {
-    console.error('Error getting user DA data:', error);
+    console.error("Error getting user DA data:", error);
     return { submissions: [], totalSize: 0, totalCost: 0 };
   }
 }

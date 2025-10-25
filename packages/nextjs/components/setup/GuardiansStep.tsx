@@ -1,21 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import { SetupData } from "@/app/setup/page";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
+  ChevronRightIcon,
+  EnvelopeIcon,
+  ExclamationTriangleIcon,
+  IdentificationIcon,
+  InformationCircleIcon,
+  PhoneIcon,
   PlusIcon,
   TrashIcon,
   UserIcon,
-  EnvelopeIcon,
-  PhoneIcon,
-  IdentificationIcon,
-  ChevronRightIcon,
-  InformationCircleIcon,
-  ExclamationTriangleIcon
 } from "@heroicons/react/24/outline";
-import { SetupData } from "@/app/setup/page";
 
 interface GuardiansStepProps {
   data: SetupData;
@@ -38,7 +38,7 @@ export default function GuardiansStep({ data, updateData, onNext, onPrev }: Guar
   const [errors, setErrors] = useState<string[]>([]);
 
   const addGuardian = () => {
-    const newGuardians = [...data.guardians, { name: '', email: '', phone: '', address: '' }];
+    const newGuardians = [...data.guardians, { name: "", email: "", phone: "", address: "" }];
     updateData({ guardians: newGuardians });
   };
 
@@ -96,7 +96,7 @@ export default function GuardiansStep({ data, updateData, onNext, onPrev }: Guar
     const names = data.guardians.map(g => g.name.trim().toLowerCase()).filter(Boolean);
     const uniqueNames = new Set(names);
     if (names.length !== uniqueNames.size) {
-      newErrors.push('Guardian names must be unique');
+      newErrors.push("Guardian names must be unique");
     }
 
     setErrors(newErrors);
@@ -111,12 +111,14 @@ export default function GuardiansStep({ data, updateData, onNext, onPrev }: Guar
 
   // Initialize with empty guardians if none exist
   if (data.guardians.length === 0) {
-    const initialGuardians = Array(REQUIRED_GUARDIANS).fill(null).map(() => ({
-      name: '',
-      email: '',
-      phone: '',
-      address: ''
-    }));
+    const initialGuardians = Array(REQUIRED_GUARDIANS)
+      .fill(null)
+      .map(() => ({
+        name: "",
+        email: "",
+        phone: "",
+        address: "",
+      }));
     updateData({ guardians: initialGuardians });
   }
 
@@ -125,8 +127,8 @@ export default function GuardiansStep({ data, updateData, onNext, onPrev }: Guar
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">Choose Your Guardians</CardTitle>
         <CardDescription>
-          Select {REQUIRED_GUARDIANS} trusted friends or family members. You'll need {RECOVERY_THRESHOLD} of them
-          to approve recovery if you lose your password or biometric access.
+          Select {REQUIRED_GUARDIANS} trusted friends or family members. You&apos;ll need {RECOVERY_THRESHOLD} of them to
+          approve recovery if you lose your password or biometric access.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -164,9 +166,13 @@ export default function GuardiansStep({ data, updateData, onNext, onPrev }: Guar
                     </label>
                     <Input
                       value={guardian.name}
-                      onChange={(e) => updateGuardian(index, 'name', e.target.value)}
+                      onChange={e => updateGuardian(index, "name", e.target.value)}
                       placeholder="Enter guardian's full name"
-                      className={errors.some(e => e.includes(`Guardian ${index + 1}`) && e.includes('Name')) ? 'border-red-500' : ''}
+                      className={
+                        errors.some(e => e.includes(`Guardian ${index + 1}`) && e.includes("Name"))
+                          ? "border-red-500"
+                          : ""
+                      }
                     />
                   </div>
 
@@ -178,8 +184,8 @@ export default function GuardiansStep({ data, updateData, onNext, onPrev }: Guar
                     </label>
                     <Input
                       type="email"
-                      value={guardian.email || ''}
-                      onChange={(e) => updateGuardian(index, 'email', e.target.value)}
+                      value={guardian.email || ""}
+                      onChange={e => updateGuardian(index, "email", e.target.value)}
                       placeholder="guardian@example.com"
                     />
                   </div>
@@ -192,8 +198,8 @@ export default function GuardiansStep({ data, updateData, onNext, onPrev }: Guar
                     </label>
                     <Input
                       type="tel"
-                      value={guardian.phone || ''}
-                      onChange={(e) => updateGuardian(index, 'phone', e.target.value)}
+                      value={guardian.phone || ""}
+                      onChange={e => updateGuardian(index, "phone", e.target.value)}
                       placeholder="+1 (555) 123-4567"
                     />
                   </div>
@@ -205,8 +211,8 @@ export default function GuardiansStep({ data, updateData, onNext, onPrev }: Guar
                       Ethereum Address
                     </label>
                     <Input
-                      value={guardian.address || ''}
-                      onChange={(e) => updateGuardian(index, 'address', e.target.value)}
+                      value={guardian.address || ""}
+                      onChange={e => updateGuardian(index, "address", e.target.value)}
                       placeholder="0x..."
                       className="font-mono text-sm"
                     />
@@ -256,7 +262,9 @@ export default function GuardiansStep({ data, updateData, onNext, onPrev }: Guar
               <h4 className="font-medium text-blue-900 mb-2">How Guardian Recovery Works</h4>
               <ul className="text-sm text-blue-800 space-y-1">
                 <li>• Guardians help protect the third piece of your private key</li>
-                <li>• You need {RECOVERY_THRESHOLD} out of {REQUIRED_GUARDIANS} guardians to approve recovery</li>
+                <li>
+                  • You need {RECOVERY_THRESHOLD} out of {REQUIRED_GUARDIANS} guardians to approve recovery
+                </li>
                 <li>• Recovery requests have a 7-day delay for security</li>
                 <li>• Guardians verify your identity through the contact methods you provide</li>
                 <li>• Choose people you trust who will respond when needed</li>
@@ -273,7 +281,7 @@ export default function GuardiansStep({ data, updateData, onNext, onPrev }: Guar
             <li>• Spread guardians across different locations and social circles</li>
             <li>• Include people you can easily contact through multiple channels</li>
             <li>• Consider people who understand the importance of this responsibility</li>
-            <li>• Let them know they'll be your recovery guardians beforehand</li>
+            <li>• Let them know they&apos;ll be your recovery guardians beforehand</li>
           </ul>
         </div>
 
@@ -282,11 +290,7 @@ export default function GuardiansStep({ data, updateData, onNext, onPrev }: Guar
           <Button variant="outline" onClick={onPrev}>
             Back
           </Button>
-          <Button
-            onClick={handleNext}
-            disabled={data.guardians.length < REQUIRED_GUARDIANS}
-            className="min-w-32"
-          >
+          <Button onClick={handleNext} disabled={data.guardians.length < REQUIRED_GUARDIANS} className="min-w-32">
             Continue
             <ChevronRightIcon className="ml-2 h-4 w-4" />
           </Button>

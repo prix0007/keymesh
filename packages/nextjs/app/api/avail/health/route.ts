@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { MockAvailService } from '@/lib/services/mockAvailService';
+import { NextResponse } from "next/server";
+import { MockAvailService } from "@/lib/services/mockAvailService";
 
 export async function GET() {
   try {
@@ -8,7 +8,7 @@ export async function GET() {
 
     return NextResponse.json({ healthy });
   } catch (error) {
-    console.error('Error in Avail health API:', error);
+    console.error("Error in Avail health API:", error);
     return NextResponse.json({ healthy: false });
   }
 }

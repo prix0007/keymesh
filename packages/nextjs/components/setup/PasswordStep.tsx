@@ -1,18 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import {
-  EyeIcon,
-  EyeSlashIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ChevronRightIcon
-} from "@heroicons/react/24/outline";
 import { SetupData } from "@/app/setup/page";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { CheckCircleIcon, ChevronRightIcon, EyeIcon, EyeSlashIcon, XCircleIcon } from "@heroicons/react/24/outline";
 
 interface PasswordStepProps {
   data: SetupData;
@@ -90,7 +83,7 @@ export default function PasswordStep({ data, updateData, onNext, onPrev }: Passw
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">Create Your Master Password</CardTitle>
         <CardDescription>
-          Your password encrypts one piece of your private key. Choose a strong password you'll remember.
+          Your password encrypts one piece of your private key. Choose a strong password you&apos;ll remember.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -104,7 +97,7 @@ export default function PasswordStep({ data, updateData, onNext, onPrev }: Passw
               id="password"
               type={showPassword ? "text" : "password"}
               value={data.password}
-              onChange={(e) => handlePasswordChange(e.target.value)}
+              onChange={e => handlePasswordChange(e.target.value)}
               placeholder="Enter a strong password"
               className="pr-10"
             />
@@ -130,7 +123,10 @@ export default function PasswordStep({ data, updateData, onNext, onPrev }: Passw
               <span className="text-gray-500">{passwordStrength.score}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className={`h-2 rounded-full ${passwordStrength.color} transition-all`} style={{ width: `${passwordStrength.score}%` }} />
+              <div
+                className={`h-2 rounded-full ${passwordStrength.color} transition-all`}
+                style={{ width: `${passwordStrength.score}%` }}
+              />
             </div>
 
             {passwordStrength.feedback.length > 0 && (
@@ -163,7 +159,7 @@ export default function PasswordStep({ data, updateData, onNext, onPrev }: Passw
               id="confirmPassword"
               type={showConfirmPassword ? "text" : "password"}
               value={data.confirmPassword}
-              onChange={(e) => handleConfirmPasswordChange(e.target.value)}
+              onChange={e => handleConfirmPasswordChange(e.target.value)}
               placeholder="Re-enter your password"
               className="pr-10"
             />
@@ -192,7 +188,7 @@ export default function PasswordStep({ data, updateData, onNext, onPrev }: Passw
             ) : (
               <>
                 <XCircleIcon className="h-4 w-4 mr-2 text-red-600" />
-                <span className="text-red-600">Passwords don't match</span>
+                <span className="text-red-600">Passwords don&apos;t match</span>
               </>
             )}
           </div>
@@ -202,8 +198,8 @@ export default function PasswordStep({ data, updateData, onNext, onPrev }: Passw
         <div className="glass rounded-lg p-4">
           <h4 className="font-medium text-blue-900 mb-2">Security Note</h4>
           <p className="text-sm text-blue-800">
-            Your password is used to encrypt one piece of your private key locally.
-            We never store your password on our servers. Make sure you remember it or store it safely.
+            Your password is used to encrypt one piece of your private key locally. We never store your password on our
+            servers. Make sure you remember it or store it safely.
           </p>
         </div>
 
@@ -212,11 +208,7 @@ export default function PasswordStep({ data, updateData, onNext, onPrev }: Passw
           <Button variant="outline" onClick={onPrev}>
             Back
           </Button>
-          <Button
-            onClick={handleNext}
-            disabled={!isValid}
-            className="min-w-32"
-          >
+          <Button onClick={handleNext} disabled={!isValid} className="min-w-32">
             Continue
             <ChevronRightIcon className="ml-2 h-4 w-4" />
           </Button>

@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { requireAuth } from '@/lib/auth';
+import { NextRequest, NextResponse } from "next/server";
+import { requireAuth } from "@/lib/auth";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -18,13 +18,13 @@ export async function POST(request: NextRequest) {
       where: { id: userOrResponse.id },
       data: {
         lastHeartbeat: now,
-        updatedAt: now
+        updatedAt: now,
       },
       select: {
         id: true,
         address: true,
-        lastHeartbeat: true
-      }
+        lastHeartbeat: true,
+      },
     });
 
     // TODO: Also call smart contract heartbeat function
@@ -34,14 +34,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       timestamp: updatedUser.lastHeartbeat,
-      message: 'Heartbeat updated successfully'
+      message: "Heartbeat updated successfully",
     });
-
   } catch (error) {
-    console.error('Error updating heartbeat:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error("Error updating heartbeat:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

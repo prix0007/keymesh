@@ -1,15 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { MockAvailService } from '@/lib/services/mockAvailService';
+import { NextRequest, NextResponse } from "next/server";
+import { MockAvailService } from "@/lib/services/mockAvailService";
 
 export async function POST(request: NextRequest) {
   try {
     const { data, walletAddress } = await request.json();
 
     if (!data || !walletAddress) {
-      return NextResponse.json(
-        { success: false, error: 'Missing data or walletAddress' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: "Missing data or walletAddress" }, { status: 400 });
     }
 
     // Convert base64 back to Uint8Array
@@ -24,10 +21,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Error in Avail submit API:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error("Error in Avail submit API:", error);
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }

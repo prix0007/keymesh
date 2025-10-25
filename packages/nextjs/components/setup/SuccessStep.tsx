@@ -2,23 +2,22 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { SetupData } from "@/app/setup/page";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatAddress } from "@/lib/utils";
 import {
+  ArrowRightIcon,
   CheckCircleIcon,
-  KeyIcon,
-  ShieldCheckIcon,
-  UsersIcon,
   CloudArrowUpIcon,
   DocumentDuplicateIcon,
-  ArrowRightIcon,
-  InformationCircleIcon,
   HeartIcon,
-  ShareIcon
+  InformationCircleIcon,
+  KeyIcon,
+  ShareIcon,
+  ShieldCheckIcon,
+  UsersIcon,
 } from "@heroicons/react/24/outline";
-import { formatAddress } from "@/lib/utils";
-
-import { SetupData } from "@/app/setup/page";
 
 interface SuccessStepProps {
   walletAddress: string;
@@ -34,9 +33,9 @@ export default function SuccessStep({ walletAddress, setupData }: SuccessStepPro
       const { blockReferences, guardianAddresses } = setupData.recoveryData;
       const params = new URLSearchParams({
         u: walletAddress,
-        b: blockReferences.join(','),
-        g: guardianAddresses.join(','),
-        v: '1'
+        b: blockReferences.join(","),
+        g: guardianAddresses.join(","),
+        v: "1",
       });
       return `keymesh://recovery/?${params.toString()}`;
     }
@@ -52,7 +51,7 @@ export default function SuccessStep({ walletAddress, setupData }: SuccessStepPro
       setRecoveryIdCopied(true);
       setTimeout(() => setRecoveryIdCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy recovery ID:', err);
+      console.error("Failed to copy recovery ID:", err);
     }
   };
 
@@ -62,22 +61,22 @@ export default function SuccessStep({ walletAddress, setupData }: SuccessStepPro
       description: "Verify your recovery methods work correctly",
       icon: ShieldCheckIcon,
       action: "Test Recovery",
-      link: "/test-recovery"
+      link: "/test-recovery",
     },
     {
       title: "Manage Guardians",
       description: "Update guardian information or add new ones",
       icon: UsersIcon,
       action: "Manage Guardians",
-      link: "/guardians"
+      link: "/guardians",
     },
     {
       title: "View Dashboard",
       description: "Monitor your recovery status and activity",
       icon: KeyIcon,
       action: "Go to Dashboard",
-      link: "/dashboard"
-    }
+      link: "/dashboard",
+    },
   ];
 
   const securityTips = [
@@ -85,7 +84,7 @@ export default function SuccessStep({ walletAddress, setupData }: SuccessStepPro
     "Test your password regularly to ensure you remember it",
     "Keep your guardians informed about their role",
     "Update guardian contact information if it changes",
-    "Consider setting up inheritance plans for your assets"
+    "Consider setting up inheritance plans for your assets",
   ];
 
   return (
@@ -96,12 +95,8 @@ export default function SuccessStep({ walletAddress, setupData }: SuccessStepPro
           <div className="mx-auto mb-4 p-4 bg-green-100 rounded-full w-20 h-20 flex items-center justify-center">
             <CheckCircleIcon className="h-12 w-12 text-green-600" />
           </div>
-          <h1 className="text-3xl font-bold text-green-800 mb-2">
-            🎉 Wallet Protection Complete!
-          </h1>
-          <p className="text-lg text-green-700 mb-4">
-            Your wallet is now protected with Keymesh social recovery
-          </p>
+          <h1 className="text-3xl font-bold text-green-800 mb-2">🎉 Wallet Protection Complete!</h1>
+          <p className="text-lg text-green-700 mb-4">Your wallet is now protected with Keymesh social recovery</p>
           <div className="bg-white rounded-lg p-4 inline-block">
             <p className="text-sm text-gray-600 mb-1">Protected Wallet</p>
             <p className="font-mono text-lg font-medium">{formatAddress(walletAddress, 8)}</p>
@@ -160,7 +155,7 @@ export default function SuccessStep({ walletAddress, setupData }: SuccessStepPro
             <span>Your Recovery ID</span>
           </CardTitle>
           <CardDescription>
-            Save this ID in a secure location. You'll need it to initiate recovery from a new device.
+            Save this ID in a secure location. You&apos;ll need it to initiate recovery from a new device.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -170,7 +165,7 @@ export default function SuccessStep({ walletAddress, setupData }: SuccessStepPro
               variant="outline"
               size="sm"
               onClick={copyRecoveryId}
-              className={recoveryIdCopied ? 'bg-green-50 border-green-300' : ''}
+              className={recoveryIdCopied ? "bg-green-50 border-green-300" : ""}
             >
               {recoveryIdCopied ? (
                 <>
@@ -192,9 +187,7 @@ export default function SuccessStep({ walletAddress, setupData }: SuccessStepPro
       <Card>
         <CardHeader>
           <CardTitle>Your Recovery Options</CardTitle>
-          <CardDescription>
-            You now have multiple ways to recover your wallet if needed.
-          </CardDescription>
+          <CardDescription>You now have multiple ways to recover your wallet if needed.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -229,9 +222,7 @@ export default function SuccessStep({ walletAddress, setupData }: SuccessStepPro
       <Card>
         <CardHeader>
           <CardTitle>Recommended Next Steps</CardTitle>
-          <CardDescription>
-            Complete these actions to ensure your recovery system works perfectly.
-          </CardDescription>
+          <CardDescription>Complete these actions to ensure your recovery system works perfectly.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">

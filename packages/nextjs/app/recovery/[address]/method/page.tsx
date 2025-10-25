@@ -3,16 +3,16 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  ArrowRightIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  ExclamationCircleIcon,
+  InformationCircleIcon,
   KeyIcon,
   ShieldCheckIcon,
   UsersIcon,
-  ClockIcon,
-  CheckCircleIcon,
-  ExclamationCircleIcon,
-  ArrowRightIcon,
-  InformationCircleIcon
 } from "@heroicons/react/24/outline";
 
 type RecoveryMethod = "password_biometric" | "password_social" | "biometric_social";
@@ -49,7 +49,7 @@ export default function RecoveryMethodSelection() {
       timeframe: "Instant",
       icon: ShieldCheckIcon,
       available: hasPassword && hasBiometric,
-      reason: !hasPassword ? "No password configured" : !hasBiometric ? "No biometric configured" : undefined
+      reason: !hasPassword ? "No password configured" : !hasBiometric ? "No biometric configured" : undefined,
     },
     {
       id: "password_social",
@@ -59,7 +59,7 @@ export default function RecoveryMethodSelection() {
       timeframe: "7 days",
       icon: KeyIcon,
       available: hasPassword && guardianCount >= 5,
-      reason: !hasPassword ? "No password configured" : guardianCount < 5 ? "Insufficient guardians" : undefined
+      reason: !hasPassword ? "No password configured" : guardianCount < 5 ? "Insufficient guardians" : undefined,
     },
     {
       id: "biometric_social",
@@ -69,8 +69,8 @@ export default function RecoveryMethodSelection() {
       timeframe: "7 days",
       icon: UsersIcon,
       available: hasBiometric && guardianCount >= 5,
-      reason: !hasBiometric ? "No biometric configured" : guardianCount < 5 ? "Insufficient guardians" : undefined
-    }
+      reason: !hasBiometric ? "No biometric configured" : guardianCount < 5 ? "Insufficient guardians" : undefined,
+    },
   ];
 
   const handleMethodSelect = (method: RecoveryMethod) => {
@@ -109,7 +109,7 @@ export default function RecoveryMethodSelection() {
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Choose Recovery Method</h1>
             <p className="text-gray-600 mb-4">
-              Select how you'd like to recover your wallet. You need any 2 of your 3 key pieces.
+              Select how you&apos;d like to recover your wallet. You need any 2 of your 3 key pieces.
             </p>
             <div className="bg-white rounded-lg p-4 inline-block">
               <p className="text-sm text-gray-600 mb-1">Recovering wallet:</p>
@@ -159,7 +159,7 @@ export default function RecoveryMethodSelection() {
 
           {/* Recovery Options */}
           <div className="grid gap-6 mb-8">
-            {recoveryOptions.map((option) => {
+            {recoveryOptions.map(option => {
               const Icon = option.icon;
               const isSelected = selectedMethod === option.id;
               const isInstant = option.timeframe === "Instant";
@@ -171,39 +171,37 @@ export default function RecoveryMethodSelection() {
                     !option.available
                       ? "border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed"
                       : isSelected
-                      ? "border-indigo-500 bg-indigo-50"
-                      : "border-gray-200 hover:border-gray-300 hover:shadow-md"
+                        ? "border-indigo-500 bg-indigo-50"
+                        : "border-gray-200 hover:border-gray-300 hover:shadow-md"
                   }`}
                   onClick={() => option.available && handleMethodSelect(option.id)}
                 >
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex items-start space-x-4">
-                        <div className={`p-3 rounded-full ${
-                          !option.available
-                            ? "bg-gray-100"
-                            : isInstant
-                            ? "bg-green-100"
-                            : "bg-yellow-100"
-                        }`}>
-                          <Icon className={`h-6 w-6 ${
-                            !option.available
-                              ? "text-gray-400"
-                              : isInstant
-                              ? "text-green-600"
-                              : "text-yellow-600"
-                          }`} />
+                        <div
+                          className={`p-3 rounded-full ${
+                            !option.available ? "bg-gray-100" : isInstant ? "bg-green-100" : "bg-yellow-100"
+                          }`}
+                        >
+                          <Icon
+                            className={`h-6 w-6 ${
+                              !option.available ? "text-gray-400" : isInstant ? "text-green-600" : "text-yellow-600"
+                            }`}
+                          />
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center space-x-3 mb-2">
                             <h3 className="text-lg font-semibold">{option.title}</h3>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              !option.available
-                                ? "bg-gray-100 text-gray-500"
-                                : isInstant
-                                ? "bg-green-100 text-green-800"
-                                : "bg-yellow-100 text-yellow-800"
-                            }`}>
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                !option.available
+                                  ? "bg-gray-100 text-gray-500"
+                                  : isInstant
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-yellow-100 text-yellow-800"
+                              }`}
+                            >
                               {option.available ? option.timeframe : "Unavailable"}
                             </span>
                           </div>
@@ -228,9 +226,7 @@ export default function RecoveryMethodSelection() {
                         </div>
                       </div>
                       <div className="flex flex-col items-center space-y-2">
-                        {isSelected && option.available && (
-                          <CheckCircleIcon className="h-6 w-6 text-indigo-600" />
-                        )}
+                        {isSelected && option.available && <CheckCircleIcon className="h-6 w-6 text-indigo-600" />}
                         {isInstant && option.available && (
                           <div className="flex items-center text-green-600">
                             <ClockIcon className="h-4 w-4 mr-1" />
@@ -255,7 +251,7 @@ export default function RecoveryMethodSelection() {
                   <ul className="text-sm text-amber-700 space-y-1">
                     <li>• Only proceed if you are the legitimate owner of this wallet</li>
                     <li>• Social recovery methods have a 7-day delay for security</li>
-                    <li>• Make sure you're on the correct website (check URL)</li>
+                    <li>• Make sure you&apos;re on the correct website (check URL)</li>
                     <li>• Never share your password or biometric with anyone</li>
                   </ul>
                 </div>
@@ -265,19 +261,11 @@ export default function RecoveryMethodSelection() {
 
           {/* Action Buttons */}
           <div className="flex justify-between">
-            <Button
-              variant="outline"
-              onClick={() => router.back()}
-            >
+            <Button variant="outline" onClick={() => router.back()}>
               Back
             </Button>
 
-            <Button
-              onClick={handleProceed}
-              disabled={!selectedMethod || isLoading}
-              size="lg"
-              className="min-w-48"
-            >
+            <Button onClick={handleProceed} disabled={!selectedMethod || isLoading} size="lg" className="min-w-48">
               {isLoading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -285,7 +273,8 @@ export default function RecoveryMethodSelection() {
                 </>
               ) : (
                 <>
-                  Continue with {selectedMethod ? recoveryOptions.find(o => o.id === selectedMethod)?.title : "Recovery"}
+                  Continue with{" "}
+                  {selectedMethod ? recoveryOptions.find(o => o.id === selectedMethod)?.title : "Recovery"}
                   <ArrowRightIcon className="ml-2 h-4 w-4" />
                 </>
               )}

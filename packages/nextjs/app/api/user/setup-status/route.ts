@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { MockAvailService } from '@/lib/services/mockAvailService';
+import { NextRequest, NextResponse } from "next/server";
+import { MockAvailService } from "@/lib/services/mockAvailService";
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const walletAddress = searchParams.get('address');
+    const walletAddress = searchParams.get("address");
 
     if (!walletAddress) {
-      return NextResponse.json({ error: 'Wallet address is required' }, { status: 400 });
+      return NextResponse.json({ error: "Wallet address is required" }, { status: 400 });
     }
 
     const availService = new MockAvailService();
@@ -18,11 +18,11 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       hasSetup,
-      walletAddress
+      walletAddress,
     });
   } catch (error) {
-    console.error('Error checking user setup status:', error);
-    return NextResponse.json({ error: 'Failed to check setup status' }, { status: 500 });
+    console.error("Error checking user setup status:", error);
+    return NextResponse.json({ error: "Failed to check setup status" }, { status: 500 });
   }
 }
 
@@ -39,12 +39,12 @@ async function checkUserSetupStatus(availService: MockAvailService, walletAddres
       return false;
     }
 
-    const stmt = db.prepare('SELECT COUNT(*) as count FROM avail_submissions WHERE user_address = ?');
+    const stmt = db.prepare("SELECT COUNT(*) as count FROM avail_submissions WHERE user_address = ?");
     const result = stmt.get(walletAddress) as any;
 
     return result.count > 0;
   } catch (error) {
-    console.error('Error checking setup status:', error);
+    console.error("Error checking setup status:", error);
     return false;
   }
 }

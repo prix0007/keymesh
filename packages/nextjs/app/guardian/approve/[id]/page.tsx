@@ -4,32 +4,30 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatAddress } from "@/lib/utils";
 import {
-  ShieldCheckIcon,
-  UserIcon,
-  ClockIcon,
+  ChatBubbleLeftRightIcon,
   CheckCircleIcon,
-  XCircleIcon,
+  EnvelopeIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
   PhoneIcon,
-  EnvelopeIcon,
-  ChatBubbleLeftRightIcon
+  ShieldCheckIcon,
+  UserIcon,
 } from "@heroicons/react/24/outline";
-import { formatAddress } from "@/lib/utils";
 
 interface RecoveryRequest {
   id: string;
   userAddress: string;
   userName?: string;
   initiatedAt: Date;
-  type: 'standard' | 'emergency';
+  type: "standard" | "emergency";
   reason?: string;
   timeRemaining: number; // hours
   approvalsReceived: number;
   approvalsRequired: number;
   approvedBy: string[];
-  status: 'pending' | 'approved' | 'declined' | 'completed';
+  status: "pending" | "approved" | "declined" | "completed";
 }
 
 export default function GuardianApproval() {
@@ -49,18 +47,18 @@ export default function GuardianApproval() {
     approvalsReceived: 1,
     approvalsRequired: 3,
     approvedBy: ["0x123...abc"],
-    status: "pending"
+    status: "pending",
   });
 
   const [checklist, setChecklist] = useState({
     contactedUser: false,
     verifiedIdentity: false,
     noCoercion: false,
-    understoodRequest: false
+    understoodRequest: false,
   });
 
   const [isProcessing, setIsProcessing] = useState(false);
-  const [decision, setDecision] = useState<'approve' | 'decline' | null>(null);
+  const [decision, setDecision] = useState<"approve" | "decline" | null>(null);
   const [declineReason, setDeclineReason] = useState("");
 
   const allChecklistComplete = Object.values(checklist).every(Boolean);
@@ -73,7 +71,7 @@ export default function GuardianApproval() {
     if (!allChecklistComplete) return;
 
     setIsProcessing(true);
-    setDecision('approve');
+    setDecision("approve");
 
     try {
       // In real app, this would call the API to approve the recovery
@@ -91,7 +89,7 @@ export default function GuardianApproval() {
     if (!declineReason.trim()) return;
 
     setIsProcessing(true);
-    setDecision('decline');
+    setDecision("decline");
 
     try {
       // In real app, this would call the API to decline the recovery
@@ -115,9 +113,7 @@ export default function GuardianApproval() {
               <ShieldCheckIcon className="h-8 w-8 text-amber-600" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Guardian Approval Required</h1>
-            <p className="text-gray-600">
-              Someone needs your help to recover their wallet
-            </p>
+            <p className="text-gray-600">Someone needs your help to recover their wallet</p>
           </div>
 
           {/* Request Details */}
@@ -137,12 +133,12 @@ export default function GuardianApproval() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-700">Request Type:</p>
-                  <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-                    request.type === 'emergency'
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-blue-100 text-blue-800'
-                  }`}>
-                    {request.type === 'emergency' ? '🚨 Emergency' : '📋 Standard'} Recovery
+                  <span
+                    className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                      request.type === "emergency" ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800"
+                    }`}
+                  >
+                    {request.type === "emergency" ? "🚨 Emergency" : "📋 Standard"} Recovery
                   </span>
                 </div>
                 <div>
@@ -160,9 +156,7 @@ export default function GuardianApproval() {
               {request.reason && (
                 <div>
                   <p className="text-sm font-medium text-gray-700 mb-1">Reason:</p>
-                  <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded border italic">
-                    "{request.reason}"
-                  </p>
+                  <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded border italic">&quot;{request.reason}&quot;</p>
                 </div>
               )}
 
@@ -188,9 +182,7 @@ export default function GuardianApproval() {
           <Card className="mb-6">
             <CardHeader>
               <CardTitle className="text-amber-800">⚠️ Verification Required</CardTitle>
-              <CardDescription>
-                Complete ALL verification steps before approving this request
-              </CardDescription>
+              <CardDescription>Complete ALL verification steps before approving this request</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
@@ -198,7 +190,7 @@ export default function GuardianApproval() {
                   <input
                     type="checkbox"
                     checked={checklist.contactedUser}
-                    onChange={(e) => handleChecklistChange('contactedUser', e.target.checked)}
+                    onChange={e => handleChecklistChange("contactedUser", e.target.checked)}
                     className="mt-1"
                   />
                   <div>
@@ -213,7 +205,7 @@ export default function GuardianApproval() {
                   <input
                     type="checkbox"
                     checked={checklist.verifiedIdentity}
-                    onChange={(e) => handleChecklistChange('verifiedIdentity', e.target.checked)}
+                    onChange={e => handleChecklistChange("verifiedIdentity", e.target.checked)}
                     className="mt-1"
                   />
                   <div>
@@ -228,7 +220,7 @@ export default function GuardianApproval() {
                   <input
                     type="checkbox"
                     checked={checklist.noCoercion}
-                    onChange={(e) => handleChecklistChange('noCoercion', e.target.checked)}
+                    onChange={e => handleChecklistChange("noCoercion", e.target.checked)}
                     className="mt-1"
                   />
                   <div>
@@ -243,7 +235,7 @@ export default function GuardianApproval() {
                   <input
                     type="checkbox"
                     checked={checklist.understoodRequest}
-                    onChange={(e) => handleChecklistChange('understoodRequest', e.target.checked)}
+                    onChange={e => handleChecklistChange("understoodRequest", e.target.checked)}
                     className="mt-1"
                   />
                   <div>
@@ -301,7 +293,7 @@ export default function GuardianApproval() {
               <ul className="text-sm text-red-700 space-y-1">
                 <li>• You cannot reach them through normal channels</li>
                 <li>• They seem stressed, rushed, or under pressure</li>
-                <li>• They can't answer personal questions correctly</li>
+                <li>• They can&apos;t answer personal questions correctly</li>
                 <li>• The request seems out of character for them</li>
                 <li>• They mention threats or someone forcing them</li>
                 <li>• You have any doubt about the legitimacy</li>
@@ -310,7 +302,7 @@ export default function GuardianApproval() {
           </Card>
 
           {/* Decline Reason */}
-          {decision === 'decline' && (
+          {decision === "decline" && (
             <Card className="mb-6 border-amber-200 bg-amber-50">
               <CardHeader>
                 <CardTitle className="text-amber-800">Reason for Declining</CardTitle>
@@ -318,7 +310,7 @@ export default function GuardianApproval() {
               <CardContent>
                 <textarea
                   value={declineReason}
-                  onChange={(e) => setDeclineReason(e.target.value)}
+                  onChange={e => setDeclineReason(e.target.value)}
                   placeholder="Please explain why you're declining this request..."
                   className="w-full p-3 border rounded-lg"
                   rows={3}
@@ -331,13 +323,13 @@ export default function GuardianApproval() {
           <div className="flex flex-col sm:flex-row gap-4">
             <Button
               variant="destructive"
-              onClick={() => setDecision('decline')}
+              onClick={() => setDecision("decline")}
               disabled={isProcessing}
               className="flex-1"
             >
-              {decision === 'decline' && !declineReason.trim() ? (
+              {decision === "decline" && !declineReason.trim() ? (
                 "Enter decline reason above"
-              ) : decision === 'decline' && isProcessing ? (
+              ) : decision === "decline" && isProcessing ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Declining...
@@ -348,20 +340,20 @@ export default function GuardianApproval() {
             </Button>
 
             <Button
-              onClick={decision === 'decline' ? handleDecline : handleApprove}
+              onClick={decision === "decline" ? handleDecline : handleApprove}
               disabled={
                 isProcessing ||
-                (decision !== 'decline' && !allChecklistComplete) ||
-                (decision === 'decline' && !declineReason.trim())
+                (decision !== "decline" && !allChecklistComplete) ||
+                (decision === "decline" && !declineReason.trim())
               }
               className="flex-1"
             >
-              {decision === 'approve' && isProcessing ? (
+              {decision === "approve" && isProcessing ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Approving...
                 </>
-              ) : decision === 'decline' ? (
+              ) : decision === "decline" ? (
                 "Confirm Decline"
               ) : !allChecklistComplete ? (
                 "Complete verification first"
@@ -376,9 +368,7 @@ export default function GuardianApproval() {
 
           {/* Help */}
           <div className="text-center mt-6">
-            <p className="text-sm text-gray-500">
-              Need help? Contact Keymesh support or review the guardian guide.
-            </p>
+            <p className="text-sm text-gray-500">Need help? Contact Keymesh support or review the guardian guide.</p>
           </div>
         </div>
       </div>

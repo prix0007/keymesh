@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { requireAuth } from '@/lib/auth';
+import { NextRequest, NextResponse } from "next/server";
+import { requireAuth } from "@/lib/auth";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -13,19 +13,13 @@ export async function POST(request: NextRequest) {
   try {
     const { userAddress, isEmergency, reason } = await request.json();
 
-    if (!userAddress || typeof userAddress !== 'string') {
-      return NextResponse.json(
-        { error: 'User address is required' },
-        { status: 400 }
-      );
+    if (!userAddress || typeof userAddress !== "string") {
+      return NextResponse.json({ error: "User address is required" }, { status: 400 });
     }
 
     // Validate address format
     if (!/^0x[a-fA-F0-9]{40}$/.test(userAddress)) {
-      return NextResponse.json(
-        { error: 'Invalid Ethereum address format' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid Ethereum address format" }, { status: 400 });
     }
 
     const normalizedAddress = userAddress.toLowerCase();
@@ -35,34 +29,28 @@ export async function POST(request: NextRequest) {
       where: { address: normalizedAddress },
       include: {
         guardians: {
-          where: { status: 'ACCEPTED' },
+          where: { status: "ACCEPTED" },
           select: {
             id: true,
             address: true,
             name: true,
             email: true,
-            phone: true
-          }
-        }
-      }
+            phone: true,
+          },
+        },
+      },
     });
 
     if (!targetUser) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // Check if the requester is the user themselves or one of their guardians
     const isOwner = targetUser.address === userOrResponse.address;
-    const isGuardian = targetUser.guardians.some(g => g.address === userOrResponse.address);
+    const isGuardian = targetUser.guardians.some((g: any) => g.address === userOrResponse.address);
 
     if (!isOwner && !isGuardian) {
-      return NextResponse.json(
-        { error: 'Unauthorized to initiate recovery for this user' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Unauthorized to initiate recovery for this user" }, { status: 403 });
     }
 
     // Check if there's already an active recovery
@@ -70,23 +58,20 @@ export async function POST(request: NextRequest) {
       where: {
         userId: targetUser.id,
         status: {
-          in: ['INITIATED', 'AWAITING_APPROVALS', 'APPROVED']
-        }
-      }
+          in: ["INITIATED", "AWAITING_APPROVALS", "APPROVED"],
+        },
+      },
     });
 
     if (existingRecovery) {
-      return NextResponse.json(
-        { error: 'Recovery already in progress for this user' },
-        { status: 409 }
-      );
+      return NextResponse.json({ error: "Recovery already in progress for this user" }, { status: 409 });
     }
 
     // Check if user has enough guardians
     if (targetUser.guardians.length < 3) {
       return NextResponse.json(
-        { error: 'User must have at least 3 accepted guardians to initiate recovery' },
-        { status: 400 }
+        { error: "User must have at least 3 accepted guardians to initiate recovery" },
+        { status: 400 },
       );
     }
 
@@ -98,29 +83,29 @@ export async function POST(request: NextRequest) {
     const recovery = await prisma.recovery.create({
       data: {
         userId: targetUser.id,
-        status: 'INITIATED',
+        status: "INITIATED",
         isEmergency: Boolean(isEmergency),
         reason: reason || null,
-        initiatedAt: new Date()
+        initiatedAt: new Date(),
       },
       include: {
         user: {
           select: {
             address: true,
-            email: true
-          }
+            email: true,
+          },
         },
         approvals: {
           include: {
             guardian: {
               select: {
                 name: true,
-                address: true
-              }
-            }
-          }
-        }
-      }
+                address: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     // TODO: Send notifications to all guardians
@@ -136,20 +121,16 @@ export async function POST(request: NextRequest) {
         unlockTime: unlockTime,
         reason: recovery.reason,
         user: {
-          address: recovery.user.address
+          address: recovery.user.address,
         },
         approvals: recovery.approvals,
         approvalsRequired: 3,
-        delayDays: delayDays
+        delayDays: delayDays,
       },
-      message: `Recovery initiated successfully. ${isEmergency ? 'Emergency' : 'Standard'} recovery will be available after ${delayDays} days with 3 guardian approvals.`
+      message: `Recovery initiated successfully. ${isEmergency ? "Emergency" : "Standard"} recovery will be available after ${delayDays} days with 3 guardian approvals.`,
     });
-
   } catch (error) {
-    console.error('Error initiating recovery:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error("Error initiating recovery:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
